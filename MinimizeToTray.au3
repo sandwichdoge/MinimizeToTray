@@ -7,9 +7,9 @@ HotKeySet("{f10}", "RestoreAllWnd")
 HotKeySet("+{esc}", "ExitS")
 
 
-;//$aHiddenWndList = Array that contains handles of all hidden windows
-;//$aTrayItems_Wnd = Array that contains handles of tray items that indicate names of hidden windows
-;//Elements of these 2 arrays should correlate with each other perfectly
+;//$aHiddenWndList = Array that contains handles of all hidden windows.
+;//$aTrayItems_Wnd = Array that contains handles of tray items that indicate names of hidden windows.
+;//Elements of these 2 arrays must be perfectly in sync with each other.
 Global $aHiddenWndList[0] = [], $aTrayItems_Wnd[0] = []
 Global $hLastWnd;//Handle of the last window that was hidden
 
@@ -97,6 +97,7 @@ Func RestoreAllWnd()
 	For $i = 0 To UBound($aTrayItems_Wnd) - 1
 		TrayItemDelete($aTrayItems_Wnd[$i])
 		_ArrayDelete($aHiddenWndList, $i)
+		_ArrayDelete($aTrayItems_Wnd, $i)
 	Next
 	FileDelete("MTTlog.txt")
 EndFunc
