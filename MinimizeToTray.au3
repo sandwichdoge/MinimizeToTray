@@ -1,5 +1,5 @@
 #include <Array.au3>
-$sVersion = "1.0"
+$sVersion = "1.1"
 
 HotKeySet("!{f2}", "HideCurrentWnd")
 HotKeySet("!{f1}", "RestoreLastWnd")
@@ -30,7 +30,7 @@ For $i = 0 To UBound($aPrevWndTitleList) - 1
 	_ArrayAdd($aHiddenWndList, WinGetHandle($aPrevWndTitleList[$i]))
 Next
 If UBound($aPrevWndTitleList) Then
-	TrayTip("", "You have " & UBound($aPrevWndTitleList) & "legacy Window(s) waiting to be restored!", 4)
+	TrayTip("", "You have " & UBound($aPrevWndTitleList) & " legacy Window(s) waiting to be restored!", 4)
 EndIf
 
 
@@ -97,8 +97,8 @@ Func RestoreAllWnd()
 	For $i = 0 To UBound($aTrayItems_Wnd) - 1
 		TrayItemDelete($aTrayItems_Wnd[$i])
 		_ArrayDelete($aHiddenWndList, $i)
-		_ArrayDelete($aTrayItems_Wnd, $i)
 	Next
+	Global $aTrayItems_Wnd[0] = []
 	FileDelete("MTTlog.txt")
 EndFunc
 
