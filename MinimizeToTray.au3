@@ -1,8 +1,8 @@
 #include <Array.au3>
-$sVersion = "1.1"
+$sVersion = "1.2"
 
-HotKeySet("!{f2}", "HideCurrentWnd")
-HotKeySet("!{f1}", "RestoreLastWnd")
+HotKeySet("!{f1}", "HideCurrentWnd")
+HotKeySet("!{f2}", "RestoreLastWnd")
 HotKeySet("{f10}", "RestoreAllWnd")
 HotKeySet("+{esc}", "ExitS")
 
@@ -21,9 +21,13 @@ $hTrayRestoreAllWnd = TrayCreateItem("Restore all Windows (F10)");, $hTrayMenuSh
 TrayCreateItem("");//Create a straight line
 $hTrayHelp = TrayCreateItem("Quick manual")
 $hTrayExit = TrayCreateItem("Exit (Shift+Esc)")
+TrayTip("MinimizeToTray " & $sVersion, "Press [Alt+F1] to hide currently active Window." & @CRLF _
+	& "Press [Alt+F2] to restore last hidden Window." & @CRLF _
+	& "Hidden Windows are stored in MTT tray icon.", 5)
 
 ;//Legacy windows from last run are loaded on startup if available, this should only happen if MTT was unexpectedly closed while some windows were still hidden.
 $aPrevWndTitleList = FileReadToArray("MTTlog.txt")
+If not @error Then
 For $i = 0 To UBound($aPrevWndTitleList) - 1
 	$hTrayWnd = TrayCreateItem($aPrevWndTitleList[$i] & " - Legacy", -1, 0);, $hTrayMenuShowSelectWnd)
 	_ArrayAdd($aTrayItems_Wnd, $hTrayWnd)
@@ -32,7 +36,7 @@ Next
 If UBound($aPrevWndTitleList) Then
 	TrayTip("", "You have " & UBound($aPrevWndTitleList) & " legacy Window(s) waiting to be restored!", 4)
 EndIf
-
+EndIf
 
 ;//Main Loop
 While 1
@@ -103,8 +107,8 @@ Func RestoreAllWnd()
 EndFunc
 
 Func Help()
-	MsgBox(64, "MinimizeToTray " & $sVersion, "Press [Alt+F2] to hide currently active Window." & @CRLF _
-	& "Press [Alt+F1] to restore last hidden Window." & @CRLF _
+	MsgBox(64, "MinimizeToTray " & $sVersion, "Press [Alt+F1] to hide currently active Window." & @CRLF _
+	& "Press [Alt+F2] to restore last hidden Window." & @CRLF _
 	& "Hidden Windows are stored in MTT tray icon." & @CRLF & @CRLF _
 	& "evorlet@gmail.com")
 EndFunc
