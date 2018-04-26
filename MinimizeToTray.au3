@@ -1,7 +1,14 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=..\Icons\MTT.ico
+#AutoIt3Wrapper_Outfile=..\..\Soft\MinimizeToTray.Exe
+#AutoIt3Wrapper_Res_Comment=Minimize Windows to Tray
+#AutoIt3Wrapper_Res_Description=Minimize Windows to Tray
+#AutoIt3Wrapper_Res_Fileversion=1.4
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ;//Minimize to tray
 ;//sandwichdoge@gmail.com
 #include <Array.au3>
-$sVersion = "1.3"
+$sVersion = "1.4"
 
 HotKeySet("!{f1}", "HideCurrentWnd")
 HotKeySet("!{f2}", "RestoreLastWnd")
@@ -99,21 +106,18 @@ EndFunc   ;==>HideCurrentWnd
 
 Func RestoreAllWnd()
 	;//Show all windows hidden during this session.
-	For $i = 0 To UBound($aHiddenWndList) - 1
-		WinSetState($aHiddenWndList[$i], "", @SW_SHOW)
+	Local $aTmp = $aHiddenWndList
+	For $i = 0 To UBound($aTmp) - 1
+		RestoreWnd($aTmp[$i])
 	Next
-	For $i = 0 To UBound($aTrayItemHandles) - 1
-		TrayItemDelete($aTrayItemHandles[$i])
-		_ArrayDelete($aHiddenWndList, $i)
-	Next
-	Global $aTrayItemHandles[0] = []
 	FileDelete("MTTlog.txt")
 EndFunc   ;==>RestoreAllWnd
 
 Func Help()
 	MsgBox(64, "MinimizeToTray " & $sVersion, "Press [Alt+F1] to hide currently active Window." & @CRLF _
 			 & "Press [Alt+F2] to restore last hidden Window." & @CRLF _
-			 & "Hidden Windows are stored in MTT tray icon." & @CRLF & @CRLF _
+			 & "Hidden Windows are stored in MTT tray icon." & @CRLF _
+			 & "If the window you want to hide is elevated to administrative level, you must run MTT as Administrator." & @CRLF & @CRLF _
 			 & "sandwichdoge@gmail.com")
 EndFunc   ;==>Help
 
