@@ -1,45 +1,53 @@
-#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Icon=..\Icons\MTT.ico
-#AutoIt3Wrapper_Outfile=..\..\Soft\MinimizeToTray.Exe
-#AutoIt3Wrapper_Res_Comment=Minimize Windows to Tray
-#AutoIt3Wrapper_Res_Description=Minimize Windows to Tray
-#AutoIt3Wrapper_Res_Fileversion=1.4
-#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ;//Minimize to tray
 ;//sandwichdoge@gmail.com
+
+#include <Misc.au3>
 #include <Array.au3>
-$sVersion = "1.4"
+#include <WinAPI.au3>
+$sVersion = "1.5"
+
+;//Exit if MTT is already running.
+If _Singleton("MTT", 1) = 0 Then
+	TrayTip("MinimizeToTray " & $sVersion, "An instance of MinimizeToTray is already running.", 2)
+	Sleep(2000)
+	Exit
+EndIf
+
+Opt('TrayAutoPause', 0)
+Opt('TrayMenuMode', 3)
 
 HotKeySet("!{f1}", "HideCurrentWnd")
 HotKeySet("!{f2}", "RestoreLastWnd")
 HotKeySet("{f10}", "RestoreAllWnd")
 HotKeySet("+{esc}", "ExitS")
+OnAutoItExitRegister("ExitS")
 
 
 ;//$aHiddenWndList = Array that contains handles of all hidden windows.
 ;//$aTrayItemHandles = Array that contains tray items that indicate names of hidden windows.
 ;//Elements of these 2 arrays must be perfectly in sync with each other.
 Global $aHiddenWndList[0] = [], $aTrayItemHandles[0] = []
-Global $hLastWnd;//Handle of the last window that was hidden
+Global $hLastWnd ;//Handle of the last window that was hidden
+Global $g_hTempParentGUI[48], $g_aTempWindowSize[48][2], $g_nIndex = 0 ;//Method 1 of hiding window
 
-Opt('TrayAutoPause', 0)
-Opt('TrayMenuMode', 3)
 
 ;$hTrayMenuShowSelectWnd = TrayCreateMenu("Restore Window")
-$hTrayRestoreAllWnd = TrayCreateItem("Restore all Windows (F10)");, $hTrayMenuShowSelectWnd)
-TrayCreateItem("");//Create a straight line
+$hTrayRestoreAllWnd = TrayCreateItem("Restore all Windows (F10)") ;, $hTrayMenuShowSelectWnd)
+TrayCreateItem("") ;//Create a straight line
 $hTrayHelp = TrayCreateItem("Quick manual")
 $hTrayExit = TrayCreateItem("Exit (Shift+Esc)")
 TrayTip("MinimizeToTray " & $sVersion, "Press [Alt+F1] to hide currently active Window." & @CRLF _
 		 & "Press [Alt+F2] to restore last hidden Window." & @CRLF _
 		 & "Hidden Windows are stored in MTT tray icon.", 5)
 
-;//Legacy windows from last run are loaded on startup if available, this should only happen if MTT was unexpectedly closed while some windows were still hidden.
+
+;//Legacy windows from last run are loaded on startup if available,
+;//this should only happen if MTT was unexpectedly closed while some windows were still hidden.
 $aPrevWndTitleList = FileReadToArray("MTTlog.txt")
 If Not @error Then
 	For $i = 0 To UBound($aPrevWndTitleList) - 1
 		If StringLen($aPrevWndTitleList[$i]) >= 1 Then
-			$hTrayWnd = TrayCreateItem($aPrevWndTitleList[$i] & " - Legacy", -1, 0);, $hTrayMenuShowSelectWnd)
+			$hTrayWnd = TrayCreateItem($aPrevWndTitleList[$i] & " - Legacy", -1, 0) ;, $hTrayMenuShowSelectWnd)
 			_ArrayAdd($aTrayItemHandles, $hTrayWnd)
 			_ArrayAdd($aHiddenWndList, WinGetHandle($aPrevWndTitleList[$i]))
 		EndIf
@@ -48,6 +56,7 @@ If Not @error Then
 		TrayTip("", "You have " & UBound($aTrayItemHandles) & " legacy Window(s) waiting to be restored!", 4)
 	EndIf
 EndIf
+
 
 ;//Main Loop
 While 1
@@ -66,13 +75,14 @@ While 1
 			ExitLoop
 		EndIf
 	Next
-	Sleep(10)
 WEnd
 
 
 Func RestoreLastWnd()
-	;//Restore last hidden window.
-	RestoreWnd($hLastWnd)
+	;//Restore window from top of hidden windows stack.
+	If UBound($aHiddenWndList) Then
+		RestoreWnd($aHiddenWndList[UBound($aHiddenWndList) - 1])
+	EndIf
 EndFunc   ;==>RestoreLastWnd
 
 Func RestoreWnd($hfWnd)
@@ -89,10 +99,11 @@ Func RestoreWnd($hfWnd)
 	EndIf
 EndFunc   ;==>RestoreWnd
 
-Func HideWnd($hfWnd)
-	WinSetState($hfWnd, "", @SW_HIDE)
+Func HideWnd($hfWnd, $nMethod = 0)
+	WinSetState($hfWnd, "", @SW_HIDE) ;Traditional WinSetState method
+	
 	_ArrayAdd($aHiddenWndList, $hfWnd)
-	$hTrayWnd = TrayCreateItem(WinGetTitle($hfWnd), -1, 0);, $hTrayMenuShowSelectWnd)
+	$hTrayWnd = TrayCreateItem(WinGetTitle($hfWnd), -1, 0) ;, $hTrayMenuShowSelectWnd)
 	_ArrayAdd($aTrayItemHandles, $hTrayWnd)
 	;//Write window's name to log file for legacy restoration in case of unexpected crash.
 	FileWrite("MTTlog.txt", WinGetTitle($hfWnd) & @CRLF)
@@ -110,7 +121,7 @@ Func RestoreAllWnd()
 	For $i = 0 To UBound($aTmp) - 1
 		RestoreWnd($aTmp[$i])
 	Next
-	FileDelete("MTTlog.txt")
+	FileDelete("MTTlog.txt") ;//Lazy way to delete legacy window list in log file.
 EndFunc   ;==>RestoreAllWnd
 
 Func Help()
