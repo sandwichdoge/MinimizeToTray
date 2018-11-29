@@ -4,7 +4,7 @@
 #include <Misc.au3>
 #include <Array.au3>
 #include <WinAPI.au3>
-$sVersion = "1.5"
+$sVersion = "1.6"
 
 ;//Exit if MTT is already running.
 If _Singleton("MTT", 1) = 0 Then
@@ -18,6 +18,7 @@ Opt('TrayMenuMode', 3)
 
 HotKeySet("!{f1}", "HideCurrentWnd")
 HotKeySet("!{f2}", "RestoreLastWnd")
+;HotKeySet("!{f4}", "CloseWnd")
 HotKeySet("{f10}", "RestoreAllWnd")
 HotKeySet("+{esc}", "ExitS")
 OnAutoItExitRegister("ExitS")
@@ -29,7 +30,7 @@ OnAutoItExitRegister("ExitS")
 Global $aHiddenWndList[0] = [], $aTrayItemHandles[0] = []
 Global $hLastWnd ;//Handle of the last window that was hidden
 Global $g_hTempParentGUI[48], $g_aTempWindowSize[48][2], $g_nIndex = 0 ;//Method 1 of hiding window
-
+Global $SEMAPHORE = 1
 
 ;$hTrayMenuShowSelectWnd = TrayCreateMenu("Restore Window")
 $hTrayRestoreAllWnd = TrayCreateItem("Restore all Windows (F10)") ;, $hTrayMenuShowSelectWnd)
@@ -86,6 +87,10 @@ Func RestoreLastWnd()
 EndFunc   ;==>RestoreLastWnd
 
 Func RestoreWnd($hfWnd)
+	If ($SEMAPHORE == 0) Then 
+		Return
+	EndIf
+	$SEMAPHORE = 0
 	Local $nIndex = _ArraySearch($aHiddenWndList, $hfWnd)
 	WinSetState($hfWnd, "", @SW_SHOW)
 	If $nIndex >= 0 Then
@@ -97,6 +102,7 @@ Func RestoreWnd($hfWnd)
 		$sLogN = StringReplace($sLog, WinGetTitle($hfWnd), "")
 		FileWrite(FileOpen("MTTlog.txt", 2), $sLogN)
 	EndIf
+	$SEMAPHORE = 1
 EndFunc   ;==>RestoreWnd
 
 Func HideWnd($hfWnd, $nMethod = 0)
@@ -123,6 +129,10 @@ Func RestoreAllWnd()
 	Next
 	FileDelete("MTTlog.txt") ;//Lazy way to delete legacy window list in log file.
 EndFunc   ;==>RestoreAllWnd
+
+Func CloseWnd()
+	ProcessClose(WinGetProcess(WinGetHandle("[ACTIVE]")))
+EndFunc	
 
 Func Help()
 	MsgBox(64, "MinimizeToTray " & $sVersion, "Press [Alt+F1] to hide currently active Window." & @CRLF _
