@@ -1,14 +1,26 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=..\Icons\MTT.ico
+#AutoIt3Wrapper_Outfile=D:\Soft\MinimizeToTray.Exe
+#AutoIt3Wrapper_Res_Comment=Minimize Windows to Tray
+#AutoIt3Wrapper_Res_Description=Minimize Windows to Tray
+#AutoIt3Wrapper_Res_Fileversion=1.7.0.0
+#AutoIt3Wrapper_Res_LegalCopyright=sandwichdoge@gmail.com
+#AutoIt3Wrapper_Run_Tidy=y
+#AutoIt3Wrapper_Run_Au3Stripper=y
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ;//Minimize to tray
 ;//sandwichdoge@gmail.com
+
 
 #include <Misc.au3>
 #include <Array.au3>
 #include <WinAPI.au3>
-$sVersion = "1.6"
+
+Global Const $VERSION = "1.7"
 
 ;//Exit if MTT is already running.
 If _Singleton("MTT", 1) = 0 Then
-	TrayTip("MinimizeToTray " & $sVersion, "An instance of MinimizeToTray is already running.", 2)
+	TrayTip("MinimizeToTray " & $VERSION, "An instance of MinimizeToTray is already running.", 2)
 	Sleep(2000)
 	Exit
 EndIf
@@ -18,7 +30,7 @@ Opt('TrayMenuMode', 3)
 
 HotKeySet("!{f1}", "HideCurrentWnd")
 HotKeySet("!{f2}", "RestoreLastWnd")
-;HotKeySet("!{f4}", "CloseWnd")
+HotKeySet("!{f4}", "HandleAltF4")
 HotKeySet("{f10}", "RestoreAllWnd")
 HotKeySet("+{esc}", "ExitS")
 OnAutoItExitRegister("ExitS")
@@ -30,14 +42,16 @@ OnAutoItExitRegister("ExitS")
 Global $aHiddenWndList[0] = [], $aTrayItemHandles[0] = []
 Global $hLastWnd ;//Handle of the last window that was hidden
 Global $g_hTempParentGUI[48], $g_aTempWindowSize[48][2], $g_nIndex = 0 ;//Method 1 of hiding window
+Global $bAltF4EndProcess = False
 Global $SEMAPHORE = 1
 
 ;$hTrayMenuShowSelectWnd = TrayCreateMenu("Restore Window")
 $hTrayRestoreAllWnd = TrayCreateItem("Restore all Windows (F10)") ;, $hTrayMenuShowSelectWnd)
+$hTrayAltF4EndProcess = TrayCreateItem("Alt-F4 forces window's process to exit")
 TrayCreateItem("") ;//Create a straight line
 $hTrayHelp = TrayCreateItem("Quick manual")
 $hTrayExit = TrayCreateItem("Exit (Shift+Esc)")
-TrayTip("MinimizeToTray " & $sVersion, "Press [Alt+F1] to hide currently active Window." & @CRLF _
+TrayTip("MinimizeToTray " & $VERSION, "Press [Alt+F1] to hide currently active Window." & @CRLF _
 		 & "Press [Alt+F2] to restore last hidden Window." & @CRLF _
 		 & "Hidden Windows are stored in MTT tray icon.", 5)
 
@@ -63,6 +77,13 @@ EndIf
 While 1
 	$hTrayMsg = TrayGetMsg()
 	Switch $hTrayMsg
+		Case $hTrayAltF4EndProcess
+			$bAltF4EndProcess = Not $bAltF4EndProcess
+			If $bAltF4EndProcess = True Then
+				TrayItemSetState($hTrayAltF4EndProcess, 1) ;//TRAY_CHECKED
+			Else
+				TrayItemSetState($hTrayAltF4EndProcess, 4) ;//TRAY_UNCHECKED
+			EndIf
 		Case $hTrayRestoreAllWnd
 			RestoreAllWnd()
 		Case $hTrayExit
@@ -86,8 +107,9 @@ Func RestoreLastWnd()
 	EndIf
 EndFunc   ;==>RestoreLastWnd
 
+
 Func RestoreWnd($hfWnd)
-	If ($SEMAPHORE == 0) Then 
+	If ($SEMAPHORE == 0) Then
 		Return
 	EndIf
 	$SEMAPHORE = 0
@@ -105,6 +127,7 @@ Func RestoreWnd($hfWnd)
 	$SEMAPHORE = 1
 EndFunc   ;==>RestoreWnd
 
+
 Func HideWnd($hfWnd, $nMethod = 0)
 	WinSetState($hfWnd, "", @SW_HIDE) ;Traditional WinSetState method
 	
@@ -116,10 +139,12 @@ Func HideWnd($hfWnd, $nMethod = 0)
 	$hLastWnd = $hfWnd
 EndFunc   ;==>HideWnd
 
+
 Func HideCurrentWnd()
 	;//Hide currently active window.
 	HideWnd(WinGetHandle("[ACTIVE]"))
 EndFunc   ;==>HideCurrentWnd
+
 
 Func RestoreAllWnd()
 	;//Show all windows hidden during this session.
@@ -130,17 +155,31 @@ Func RestoreAllWnd()
 	FileDelete("MTTlog.txt") ;//Lazy way to delete legacy window list in log file.
 EndFunc   ;==>RestoreAllWnd
 
+
 Func CloseWnd()
 	ProcessClose(WinGetProcess(WinGetHandle("[ACTIVE]")))
-EndFunc	
+EndFunc   ;==>CloseWnd
+
+
+Func HandleAltF4()
+	If $bAltF4EndProcess = True Then
+		CloseWnd()
+	Else
+		HotKeySet("!{f4}")
+		Send("!{f4}")
+		HotKeySet("!{f4}", "HandleAltF4")
+	EndIf
+EndFunc   ;==>HandleAltF4
+
 
 Func Help()
-	MsgBox(64, "MinimizeToTray " & $sVersion, "Press [Alt+F1] to hide currently active Window." & @CRLF _
+	MsgBox(64, "MinimizeToTray " & $VERSION, "Press [Alt+F1] to hide currently active Window." & @CRLF _
 			 & "Press [Alt+F2] to restore last hidden Window." & @CRLF _
 			 & "Hidden Windows are stored in MTT tray icon." & @CRLF _
 			 & "If the window you want to hide is elevated to administrative level, you must run MTT as Administrator." & @CRLF & @CRLF _
 			 & "sandwichdoge@gmail.com")
 EndFunc   ;==>Help
+
 
 Func ExitS()
 	RestoreAllWnd()
