@@ -1,13 +1,3 @@
-#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Icon=..\Icons\MTT.ico
-#AutoIt3Wrapper_Outfile=D:\Soft\MinimizeToTray.Exe
-#AutoIt3Wrapper_Res_Comment=Minimize Windows to Tray
-#AutoIt3Wrapper_Res_Description=Minimize Windows to Tray
-#AutoIt3Wrapper_Res_Fileversion=1.7.0.0
-#AutoIt3Wrapper_Res_LegalCopyright=sandwichdoge@gmail.com
-#AutoIt3Wrapper_Run_Tidy=y
-#AutoIt3Wrapper_Run_Au3Stripper=y
-#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ;//Minimize to tray
 ;//sandwichdoge@gmail.com
 
@@ -16,7 +6,7 @@
 #include <Array.au3>
 #include <WinAPI.au3>
 
-Global Const $VERSION = "1.7"
+Global Const $VERSION = "1.8"
 
 ;//Exit if MTT is already running.
 If _Singleton("MTT", 1) = 0 Then
@@ -42,15 +32,19 @@ OnAutoItExitRegister("ExitS")
 Global $aHiddenWndList[0] = [], $aTrayItemHandles[0] = []
 Global $hLastWnd ;//Handle of the last window that was hidden
 Global $g_hTempParentGUI[48], $g_aTempWindowSize[48][2], $g_nIndex = 0 ;//Method 1 of hiding window
-Global $bAltF4EndProcess = False
+Global $bAltF4EndProcess = False, $bRestoreOnExit = False
 Global $SEMAPHORE = 1
+
 
 ;$hTrayMenuShowSelectWnd = TrayCreateMenu("Restore Window")
 $hTrayRestoreAllWnd = TrayCreateItem("Restore all Windows (F10)") ;, $hTrayMenuShowSelectWnd)
-$hTrayAltF4EndProcess = TrayCreateItem("Alt-F4 forces window's process to exit")
 TrayCreateItem("") ;//Create a straight line
+$opt = TrayCreateMenu("Options")
+$hTrayAltF4EndProcess = TrayCreateItem("Alt-F4 forces window's process to exit", $opt)
+$hTrayRestoreOnExit = TrayCreateItem("Restore hidden windows on exit", $opt)
 $hTrayHelp = TrayCreateItem("Quick manual")
 $hTrayExit = TrayCreateItem("Exit (Shift+Esc)")
+
 TrayTip("MinimizeToTray " & $VERSION, "Press [Alt+F1] to hide currently active Window." & @CRLF _
 		 & "Press [Alt+F2] to restore last hidden Window." & @CRLF _
 		 & "Hidden Windows are stored in MTT tray icon.", 5)
@@ -67,6 +61,7 @@ If Not @error Then
 			_ArrayAdd($aHiddenWndList, WinGetHandle($aPrevWndTitleList[$i]))
 		EndIf
 	Next
+	
 	If UBound($aTrayItemHandles) Then
 		TrayTip("", "You have " & UBound($aTrayItemHandles) & " legacy Window(s) waiting to be restored!", 4)
 	EndIf
@@ -78,12 +73,9 @@ While 1
 	$hTrayMsg = TrayGetMsg()
 	Switch $hTrayMsg
 		Case $hTrayAltF4EndProcess
-			$bAltF4EndProcess = Not $bAltF4EndProcess
-			If $bAltF4EndProcess = True Then
-				TrayItemSetState($hTrayAltF4EndProcess, 1) ;//TRAY_CHECKED
-			Else
-				TrayItemSetState($hTrayAltF4EndProcess, 4) ;//TRAY_UNCHECKED
-			EndIf
+			ToggleOpt($bAltF4EndProcess, $hTrayAltF4EndProcess)
+		Case $hTrayRestoreOnExit
+			ToggleOpt($bRestoreOnExit, $hTrayRestoreOnExit)
 		Case $hTrayRestoreAllWnd
 			RestoreAllWnd()
 		Case $hTrayExit
@@ -91,6 +83,7 @@ While 1
 		Case $hTrayHelp
 			Help()
 	EndSwitch
+	
 	For $i = 0 To UBound($aTrayItemHandles) - 1
 		If $hTrayMsg = $aTrayItemHandles[$i] Then
 			RestoreWnd($aHiddenWndList[$i])
@@ -98,6 +91,19 @@ While 1
 		EndIf
 	Next
 WEnd
+
+
+Func ToggleOpt(ByRef $bFlag, ByRef $hTrayItem)
+	$bFlag = Not $bFlag
+	
+	Local $nTrayItemState = TrayItemGetState($hTrayItem)
+	If BitAND($nTrayItemState, 1) Then ;//CHECKED
+		TrayItemSetState($hTrayItem, 4)
+	ElseIf BitAND($nTrayItemState, 4) Then
+		TrayItemSetState($hTrayItem, 1)
+	EndIf
+
+EndFunc   ;==>ToggleOpt
 
 
 Func RestoreLastWnd()
@@ -182,6 +188,8 @@ EndFunc   ;==>Help
 
 
 Func ExitS()
-	RestoreAllWnd()
+	If $bRestoreOnExit Then
+		RestoreAllWnd()
+	EndIf
 	Exit
 EndFunc   ;==>ExitS
