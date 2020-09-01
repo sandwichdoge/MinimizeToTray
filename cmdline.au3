@@ -43,12 +43,40 @@ Func CmdlineValidateParams()
 	EndIf
 
 	; No -p or invalid arg value for -p
-	If Not _CmdLine_KeyExists('p') Or _CmdLine_Get('p') == "" Then
-		MsgBox(0, "MTT", "Error. Need to specific a valid process name for '-p' opt.", 10)
+	If Not _CmdLine_KeyExists('p') And Not _CmdLine_KeyEXists('t') Then
+		MsgBox(0, "MTT", "Error. Need to specify a process name to hide with -p or a window title with -t.", 10)
+		Return False
+	EndIf
+
+	If _CmdLine_KeyExists('p') and _CmdLine_Get('p') == '' Then
+		Return False
+	EndIf
+
+	If _CmdLine_KeyExists('t') and _CmdLine_Get('t') == '' Then
 		Return False
 	EndIf
 
 	Return True
+EndFunc
+
+Func CmdlineShowHelp()
+	MsgBox(64, "MTT", "Cmdline options: " & @CRLF _
+	& "-p <process name>" & @CRLF _
+	& "-t <window title>" & @CRLF _
+	& "-H: To hide all visible window created by a process." & @CRLF _
+	& "-S: To show/restore previously hidden window.")
+EndFunc
+
+Func _GetAllPossibleWnds($sWndTitle)
+	Local $aRet[0]
+	$aAllWnds = WinList()
+	For $i = 0 To UBound($aAllWnds) - 1
+		If StringInStr($aAllWnds[$i][0], $sWndTitle) Then
+			_ArrayAdd($aRet, $aAllWnds[$i][0])
+		EndIf
+	Next
+
+	Return $aRet
 EndFunc
 
 Func CmdlineRunCliMode()
@@ -56,18 +84,28 @@ Func CmdlineRunCliMode()
 		Return
 	EndIf
 
+	If _CmdLine_FlagExists('h') Then
+		CmdlineShowHelp()
+		Return
+	EndIf
+
 	If Not CmdlineValidateParams() Then
 		Return
 	EndIf
 
-	$sProcessNameToHide = _CmdLine_Get('p')
-	$aDetectedWndTitles = _GetTitleFromProcName($sProcessNameToHide)
-
+	If _CmdLine_KeyExists('p') Then
+		$sProcessNameToHide = _CmdLine_Get('p')
+		$aDetectedWndTitles = _GetTitleFromProcName($sProcessNameToHide)
+	ElseIf _CmdLine_KeyExists('t') Then
+		$sWndTitle = _CmdLine_Get('t')
+		$aDetectedWndTitles = _GetAllPossibleWnds($sWndTitle)
+	EndIf
 	For $i = 0 To UBound($aDetectedWndTitles) - 1
+		$sWndTitle = $aDetectedWndTitles[$i]
 		If _CmdLine_FlagExists('H') Then
-			WinSetState($aDetectedWndTitles[$i], '', @SW_HIDE)
+			WinSetState($sWndTitle, '', @SW_HIDE)
 		ElseIf _CmdLine_FlagExists('S') Then
-			WinSetState($aDetectedWndTitles[$i], '', @SW_SHOW)
+			WinSetState($sWndTitle, '', @SW_SHOW)
 		EndIf
 	Next
 EndFunc
