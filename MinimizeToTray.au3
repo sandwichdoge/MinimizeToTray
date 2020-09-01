@@ -1,11 +1,17 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=MTT.ico
+#AutoIt3Wrapper_Outfile=MinimizeToTray.Exe
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ;//Minimize to tray
 ;//sandwichdoge@gmail.com
 
+#include-once
 #include <Misc.au3>
 #include <Array.au3>
 #include <WinAPI.au3>
 #include <GuiConstantsEx.au3>
 #include <GUIHotkey.au3>
+#include "cmdline.au3"
 
 Global Const $VERSION = "2.0"
 Global Const $CONFIG_INI = "MTTconf.ini"
@@ -13,6 +19,13 @@ Global Const $CONFIG_INI = "MTTconf.ini"
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
 Global Const $DEFAULT_RESTORE_LAST_WND_HK = "!{f2}"
 Global Const $DEFAULT_RESTORE_ALL_WND_HK = "{f10}"
+
+If CmdlineHasParams() Then
+	;Cmdline mode does not care about tray and GUI whatsoever.
+	CmdlineRunCliMode()
+	Exit
+EndIf
+
 
 ;//Exit if MTT is already running.
 If _Singleton("MTT", 1) = 0 Then
@@ -220,7 +233,7 @@ Func RestoreWnd($hfWnd)
 EndFunc   ;==>RestoreWnd
 
 
-Func HideWnd($hfWnd, $nMethod = 0)
+Func HideWnd($hfWnd)
 	WinSetState($hfWnd, "", @SW_HIDE) ;Traditional WinSetState method
 	_ArrayAdd($aHiddenWndList, $hfWnd)
 	$hTrayWnd = TrayCreateItem(WinGetTitle($hfWnd), -1, 0) ;, $hTrayMenuShowSelectWnd)

@@ -117,7 +117,6 @@ EndFunc   ;==>_GUICtrlHotkey_Create
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_Delete($hHotkey)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 
 	; Release the font handle
@@ -147,7 +146,6 @@ EndFunc ; ==> _GUICtrlHotkey_Delete
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_GetHotkey($hHotkey)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 
 	Local $iHotkey = _GUICtrlhotkey_GetHotkeyCode($hHotkey)
@@ -247,7 +245,6 @@ EndFunc   ;==>_GUICtrlHotkey_GetHotkey
 ; ===============================================================================================================================
 
 Func _GUICtrlhotkey_GetHotkeyCode($hHotkey)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 
 	Return _SendMessage($hHotkey, $HKM_GETHOTKEY, 0, 0)
@@ -344,7 +341,6 @@ EndFunc
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_GetHotkeyName($hHotkey)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 
 	Local $iHotkey = _GUICtrlhotkey_GetHotkeyCode($hHotkey)
@@ -371,7 +367,6 @@ EndFunc   ;==>_GUICtrlHotkey_GetHotkeyName
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_SetFont($hHotkey, $nSize, $nWeight = 400, $nAttribute = 0, $sFace = "Arial", $nQuality = 2)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 
 	Local $hDC, $nHeight, $fItalic = False, $fUnderline = False, $fStrikeout = False, $hFont, $hFont_Old
@@ -523,7 +518,6 @@ EndFunc
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_SetHotkey($hHotkey, $sHotkey)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 	If $sHotkey = "" Then _ ; Set hotkey control to "none"
 			Return _GUICtrlHotkey_SetHotkeyCode($hHotkey, 0)
@@ -548,7 +542,6 @@ EndFunc   ;==>_GUICtrlHotkey_SetHotkey
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_SetHotkeyCode($hHotkey, $iHotkey)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 
 	_SendMessage($hHotkey, $HKM_SETHOTKEY, $iHotkey, 0)
@@ -572,7 +565,6 @@ EndFunc   ;==>_GUICtrlHotkey_SetHotkeyCode
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_SetHotkeyName($hHotkey, $sHotkey)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 	If $sHotkey = "" Then _ ; Set hotkey control to "none"
 			Return _GUICtrlHotkey_SetHotkeyCode($hHotkey, 0)
@@ -675,7 +667,6 @@ EndFunc   ;==>_GUICtrlHotkey_SetHotkeyName
 ; ===============================================================================================================================
 
 Func _GUICtrlHotkey_SetRules($hHotkey, $iCombInv, $iModInv)
-	If $Debug_HK Then __UDF_ValidateClassName($hHotkey, $__HOTKEYCONSTANT_ClassName)
 	If Not WinExists($hHotkey) Then Return SetError(1, 0, 0)
 
 	_SendMessage($hHotkey, $HKM_SETRULES, $iCombInv, $iModInv)
