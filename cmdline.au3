@@ -61,10 +61,13 @@ EndFunc
 
 Func CmdlineShowHelp()
 	MsgBox(64, "MTT", "Cmdline options: " & @CRLF _
+	& "We may hide/show windows based on either their title or process name:" & @CRLF _
 	& "-p <process name>" & @CRLF _
 	& "-t <window title>" & @CRLF _
 	& "-H: To hide all visible window created by a process." & @CRLF _
-	& "-S: To show/restore previously hidden window.")
+	& "-S: To show/restore previously hidden window." & @CRLF & @CRLF _
+	& "Example for hiding all open firefox windows:" & @CRLF _
+	& "Minimize.exe -p firefox.exe -H")
 EndFunc
 
 Func _GetAllPossibleWnds($sWndTitle)
