@@ -13,7 +13,7 @@
 #include <GUIHotkey.au3>
 #include "cmdline.au3"
 
-Global Const $VERSION = "2.1"
+Global Const $VERSION = "2.2"
 Global Const $CONFIG_INI = "MTTconf.ini"
 
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
@@ -158,7 +158,7 @@ Func EditHotkeys()
 			$sHK_RestoreAllWnd = _GUICtrlHotkey_GetHotkey($hGUIHotkeyEdit_HK_RestoreAllWnd)
 
 			; Validate new hotkeys
-			If $sHK_HideWnd == "" Or $sHK_RestoreLastWnd == "" Or $sHK_RestoreAllWnd == "" Then
+			If $sHK_HideWnd == "" Then
 			   MsgBox(16, "", "Hotkeys must not be empty.")
 			   ContinueLoop
 			EndIf
