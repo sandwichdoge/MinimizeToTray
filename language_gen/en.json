@@ -1,5 +1,25 @@
 {
 "key" : "en",
-"TextId_Hello" : "Hello",
-"TextId_Goodbye" : "Goodbye"
+"TextId_Already_Running" : "An instance of MinimizeToTray is already running.",
+"TextId_Tray_Restore_All_Windows" : "Restore all windows",
+"TextId_Tray_Extra" : "Extra",
+"TextId_Tray_Opt_AltF4_Force_Exit_Desc" : "Alt-F4 forces window's process to exit",
+"TextId_Tray_Opt_Restore_On_Exit_Desc" : "Restore hidden windows on exit",
+"TextId_Tray_Opt_Save_Legacy_Windows_Desc" : "Save legacy windows",
+"TextId_Tray_Edit_Hotkeys" : "Edit Hotkeys",
+"TextId_Tray_Quick_Help" : "Quick Help",
+"TextId_Tray_Exit" : "Exit",
+"TextId_GUI_Edit_Hotkeys" : "Edit Hotkeys",
+"TextId_GUI_OK" : "OK",
+"TextId_GUI_Default" : "Default",
+"TextId_GUI_Hide_Active_Window" : "Hide active window",
+"TextId_GUI_Restore_Last_Window" : "Restore last window",
+"TextId_GUI_Restore_All_Windows" : "Restore all hidden windows",
+"TextId_GUI_Warning_Key_Overlap" : "ESC key and ALT-F4 cannot be selected because they will interfere with system hotkeys.",
+"TextId_GUI_Warning_Key_Empty" : "Hotkeys must not be empty.",
+"TextId_Msg_Help_1_Press" : "Press",
+"TextId_Msg_Help_2_To_Hide_Active" : "to hide currently active Window.",
+"TextId_Msg_Help_3_To_Restore" : "to restore last hidden Window.",
+"TextId_Msg_Help_4_Stored_In_Tray" : "Hidden Windows are stored in MTT tray icon.",
+"TextId_Msg_Help_5_Elevated_Window_Admin" : "!!If the window you want to hide is elevated to administrative level, you must run MTT as Administrator."
 }

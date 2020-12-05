@@ -1,5 +1,25 @@
 {
 "key" : "de",
-"TextId_Hello" : "Hallo",
-"TextId_Goodbye" : "Tschüss"
+"TextId_Already_Running" : "",
+"TextId_Tray_Restore_All_Windows" : "Restore all windows",
+"TextId_Tray_Extra" : "",
+"TextId_Tray_Opt_AltF4_Force_Exit_Desc" : "",
+"TextId_Tray_Opt_Restore_On_Exit_Desc" : "",
+"TextId_Tray_Opt_Save_Legacy_Windows_Desc" : "",
+"TextId_Tray_Edit_Hotkeys" : "",
+"TextId_Tray_Quick_Help" : "",
+"TextId_Tray_Exit" : "",
+"TextId_GUI_Edit_Hotkeys" : "",
+"TextId_GUI_OK" : "",
+"TextId_GUI_Default" : "",
+"TextId_GUI_Hide_Active_Window" : "",
+"TextId_GUI_Restore_Last_Window" : "",
+"TextId_GUI_Restore_All_Windows" : "",
+"TextId_GUI_Warning_Key_Overlap" : "",
+"TextId_GUI_Warning_Key_Empty" : "",
+"TextId_Msg_Help_1_Press" : "",
+"TextId_Msg_Help_2_To_Hide_Active" : "",
+"TextId_Msg_Help_3_To_Restore" : "",
+"TextId_Msg_Help_4_Stored_In_Tray" : "",
+"TextId_Msg_Help_5_Elevated_Window_Admin" : ""
 }
