@@ -58,7 +58,7 @@ Func Main()
 
    TrayTip("MinimizeToTray " & $VERSION, $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
 		  & $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] " & $sTextId_Msg_Help_3_To_Restore & @CRLF _
-		  & "Hidden Windows are stored in MTT tray icon.", 5)
+		  & $sTextId_Msg_Help_4_Stored_In_Tray, 5)
 
    RestoreLastShutdownWindows()
 
@@ -77,10 +77,12 @@ Func InitializeConfigs()
    Global $sRestoreAllWndsOnExit = IniRead($CONFIG_INI, "Extra", "RESTORE_ALL_WINDOWS_ON_EXIT", "False")
    Global $sAltF4EndProcess = IniRead($CONFIG_INI, "Extra", "ALT_F4_FORCE_END_PROCESS", "False")
    Global $sSaveLegacyWindows = IniRead($CONFIG_INI, "Extra", "SAVE_LEGACY_WINDOWS", "False")
+   Global $sRestoreFocus = IniRead($CONFIG_INI, "Extra", "RESTORE_FOCUS", "False")
 
    Global $bAltF4EndProcess = TextToBool($sAltF4EndProcess)
    Global $bRestoreOnExit = TextToBool($sRestoreAllWndsOnExit)
    Global $bSaveLegacyWindows = TextToBool($sSaveLegacyWindows)
+   Global $bRestoreFocus = TextToBool($sRestoreFocus)
 
    Global $sLanguage = IniRead($CONFIG_INI, "Extra", "Language", "en")
 
@@ -100,6 +102,7 @@ Func InitializeLanguage()
    Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_AltF4_Force_Exit_Desc"]')
    Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_Restore_On_Exit_Desc"]')
    Global $sTextId_Tray_Opt_Save_Legacy_Windows_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_Save_Legacy_Windows_Desc"]')
+   Global $sTextId_Tray_Opt_Restore_Focus = Json_Get($hJobj, '["TextId_Tray_Opt_Restore_Focus"]')
    Global $sTextId_Tray_Edit_Hotkeys = Json_Get($hJobj, '["TextId_Tray_Edit_Hotkeys"]')
    Global $sTextId_Tray_Quick_Help = Json_Get($hJobj, '["TextId_Tray_Quick_Help"]')
    Global $sTextId_Tray_Exit = Json_Get($hJobj, '["TextId_Tray_Exit"]')
@@ -129,6 +132,8 @@ Func InitializeTray()
    TrayItemSetState($hTrayRestoreOnExit, $bRestoreOnExit)
    Global $hTraySaveLegacyWindows = TrayCreateItem($sTextId_Tray_Opt_Save_Legacy_Windows_Desc, $opt)
    TrayItemSetState($hTraySaveLegacyWindows, $bSaveLegacyWindows)
+   Global $hTrayRestoreFocus = TrayCreateItem($sTextId_Tray_Opt_Restore_Focus, $opt)
+   TrayItemSetState($hTrayRestoreFocus, $bRestoreFocus)
    Global $hTrayEditHotkeys = TrayCreateItem($sTextId_Tray_Edit_Hotkeys)
    Global $hTrayHelp = TrayCreateItem($sTextId_Tray_Quick_Help)
    Global $hTrayExit = TrayCreateItem($sTextId_Tray_Exit)
@@ -169,6 +174,9 @@ Func HandleTrayEvents()
 	  Case $hTraySaveLegacyWindows
 		 ToggleOpt($bSaveLegacyWindows, $hTraySaveLegacyWindows)
 		 IniWrite($CONFIG_INI, "Extra", "SAVE_LEGACY_WINDOWS", BoolToText($bSaveLegacyWindows))
+	  Case $hTrayRestoreFocus
+		 ToggleOpt($bRestoreFocus, $hTrayRestoreFocus)
+		 IniWrite($CONFIG_INI, "Extra", "RESTORE_FOCUS", BoolToText($bRestoreFocus))
 	  Case $hTrayRestoreAllWnd
 		 RestoreAllWnd()
 	  Case $hTrayExit
@@ -268,6 +276,9 @@ Func RestoreWnd($hfWnd)
    $SEMAPHORE = 0
    Local $nIndex = _ArraySearch($aHiddenWndList, $hfWnd)
    WinSetState($hfWnd, "", @SW_SHOW)
+   If $bRestoreFocus == True Then
+	  WinActivate($hfWnd)
+   EndIf
    If $nIndex >= 0 Then
 	  If $nIndex < UBound($aTrayItemHandles) Then
 		 TrayItemDelete($aTrayItemHandles[$nIndex])
