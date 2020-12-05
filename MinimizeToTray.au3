@@ -10,7 +10,8 @@
 #include <Array.au3>
 #include <WinAPI.au3>
 #include <GuiConstantsEx.au3>
-#include <GUIHotkey.au3>
+#include "libs/GUIHotkey.au3"
+#include "libs/Json.au3"
 #include "cmdline.au3"
 
 Global Const $VERSION = "2.3"
@@ -51,6 +52,7 @@ Main()
 
 Func Main()
    InitializeConfigs()
+   InitializeLanguage()
    InitializeTray()
    InitializeGUIs()
 
@@ -80,6 +82,8 @@ Func InitializeConfigs()
    Global $bRestoreOnExit = TextToBool($sRestoreAllWndsOnExit)
    Global $bSaveLegacyWindows = TextToBool($sSaveLegacyWindows)
 
+   Global $sLanguage = IniRead($CONFIG_INI, "Extra", "Language", "en")
+
    HotKeySet($sHK_HideWnd, "HideCurrentWnd")
    HotKeySet($sHK_RestoreLastWnd, "RestoreLastWnd")
    HotKeySet("!{f4}", "HandleAltF4")
@@ -87,9 +91,18 @@ Func InitializeConfigs()
    OnAutoItExitRegister("ExitS")
 EndFunc
 
+Func InitializeLanguage()
+   Local $sLanguageFile = FileRead("language_gen\" & $sLanguage & ".json")
+   Local $hJobj = Json_Decode($sLanguageFile)
+   Global $TEXT_HELLO = Json_Get($hJobj, '["TextId_Hello"]')
+   Global $TEXT_RESTORE_ALL_WINDOWS = Json_Get($hJobj, '["TextId_Restore_All_Windows"]')
+   ; TODO Add the rest of the TextIds
+
+EndFunc
+
 Func InitializeTray()
    ; == Tray Creation Section ==
-   Global $hTrayRestoreAllWnd = TrayCreateItem("Restore All Windows (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
+   Global $hTrayRestoreAllWnd = TrayCreateItem("Restore All Windows" & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
    TrayCreateItem("") ;//Create a straight line
    $opt = TrayCreateMenu("Extra")
    Global $hTrayAltF4EndProcess = TrayCreateItem("Alt-F4 forces window's process to exit", $opt)
