@@ -10,10 +10,11 @@
 #include <Array.au3>
 #include <WinAPI.au3>
 #include <GuiConstantsEx.au3>
-#include <GUIHotkey.au3>
+#include "libs/GUIHotkey.au3"
+#include "libs/Json.au3"
 #include "cmdline.au3"
 
-Global Const $VERSION = "2.3"
+Global Const $VERSION = "2.4"
 Global Const $CONFIG_INI = "MTTconf.ini"
 
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
@@ -26,13 +27,6 @@ If CmdlineHasParams() Then
    Exit
 EndIf
 
-
-;//Exit if MTT is already running.
-If _Singleton("MTT", 1) = 0 Then
-   TrayTip("MinimizeToTray " & $VERSION, "An instance of MinimizeToTray is already running.", 2)
-   Sleep(2000)
-   Exit
-EndIf
 
 Opt('TrayAutoPause', 0)
 Opt('TrayMenuMode', 3)
@@ -51,12 +45,20 @@ Main()
 
 Func Main()
    InitializeConfigs()
+   InitializeLanguage()
    InitializeTray()
    InitializeGUIs()
 
-   TrayTip("MinimizeToTray " & $VERSION, "Press [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] to hide currently active Window." & @CRLF _
-			& "Press [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] to restore last hidden Window." & @CRLF _
-			& "Hidden Windows are stored in MTT tray icon.", 5)
+   ;//Exit if MTT is already running.
+   If _Singleton("MTT", 1) = 0 Then
+	  TrayTip("MinimizeToTray " & $VERSION, $sTextId_Already_Running, 2)
+	  Sleep(2000)
+	  Exit
+   EndIf
+
+   TrayTip("MinimizeToTray " & $VERSION, $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
+		  & $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] " & $sTextId_Msg_Help_3_To_Restore & @CRLF _
+		  & $sTextId_Msg_Help_4_Stored_In_Tray, 5)
 
    RestoreLastShutdownWindows()
 
@@ -75,10 +77,14 @@ Func InitializeConfigs()
    Global $sRestoreAllWndsOnExit = IniRead($CONFIG_INI, "Extra", "RESTORE_ALL_WINDOWS_ON_EXIT", "False")
    Global $sAltF4EndProcess = IniRead($CONFIG_INI, "Extra", "ALT_F4_FORCE_END_PROCESS", "False")
    Global $sSaveLegacyWindows = IniRead($CONFIG_INI, "Extra", "SAVE_LEGACY_WINDOWS", "False")
+   Global $sRestoreFocus = IniRead($CONFIG_INI, "Extra", "RESTORE_FOCUS", "False")
 
    Global $bAltF4EndProcess = TextToBool($sAltF4EndProcess)
    Global $bRestoreOnExit = TextToBool($sRestoreAllWndsOnExit)
    Global $bSaveLegacyWindows = TextToBool($sSaveLegacyWindows)
+   Global $bRestoreFocus = TextToBool($sRestoreFocus)
+
+   Global $sLanguage = IniRead($CONFIG_INI, "Extra", "Language", "en")
 
    HotKeySet($sHK_HideWnd, "HideCurrentWnd")
    HotKeySet($sHK_RestoreLastWnd, "RestoreLastWnd")
@@ -87,43 +93,73 @@ Func InitializeConfigs()
    OnAutoItExitRegister("ExitS")
 EndFunc
 
+Func InitializeLanguage()
+   Local $sLanguageFile = FileRead("language_gen\" & $sLanguage & ".json")
+   Local $hJobj = Json_Decode($sLanguageFile)
+   Global $sTextId_Already_Running = Json_Get($hJobj, '["TextId_Already_Running"]')
+   Global $sTextId_Tray_Restore_All_Windows = Json_Get($hJobj, '["TextId_Tray_Restore_All_Windows"]')
+   Global $sTextId_Tray_Extra = Json_Get($hJobj, '["TextId_Tray_Extra"]')
+   Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_AltF4_Force_Exit_Desc"]')
+   Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_Restore_On_Exit_Desc"]')
+   Global $sTextId_Tray_Opt_Save_Legacy_Windows_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_Save_Legacy_Windows_Desc"]')
+   Global $sTextId_Tray_Opt_Restore_Focus = Json_Get($hJobj, '["TextId_Tray_Opt_Restore_Focus"]')
+   Global $sTextId_Tray_Edit_Hotkeys = Json_Get($hJobj, '["TextId_Tray_Edit_Hotkeys"]')
+   Global $sTextId_Tray_Quick_Help = Json_Get($hJobj, '["TextId_Tray_Quick_Help"]')
+   Global $sTextId_Tray_Exit = Json_Get($hJobj, '["TextId_Tray_Exit"]')
+   Global $sTextId_GUI_Edit_Hotkeys = Json_Get($hJobj, '["TextId_GUI_Edit_Hotkeys"]')
+   Global $sTextId_GUI_OK = Json_Get($hJobj, '["TextId_GUI_OK"]')
+   Global $sTextId_GUI_Default = Json_Get($hJobj, '["TextId_GUI_Default"]')
+   Global $sTextId_GUI_Hide_Active_Window = Json_Get($hJobj, '["TextId_GUI_Hide_Active_Window"]')
+   Global $sTextId_GUI_Restore_Last_Window = Json_Get($hJobj, '["TextId_GUI_Restore_Last_Window"]')
+   Global $sTextId_GUI_Restore_All_Windows = Json_Get($hJobj, '["TextId_GUI_Restore_All_Windows"]')
+   Global $sTextId_GUI_Warning_Key_Overlap = Json_Get($hJobj, '["TextId_GUI_Warning_Key_Overlap"]')
+   Global $sTextId_GUI_Warning_Key_Empty = Json_Get($hJobj, '["TextId_GUI_Warning_Key_Empty"]')
+   Global $sTextId_Msg_Help_1_Press = Json_Get($hJobj, '["TextId_Msg_Help_1_Press"]')
+   Global $sTextId_Msg_Help_2_To_Hide_Active = Json_Get($hJobj, '["TextId_Msg_Help_2_To_Hide_Active"]')
+   Global $sTextId_Msg_Help_3_To_Restore = Json_Get($hJobj, '["TextId_Msg_Help_3_To_Restore"]')
+   Global $sTextId_Msg_Help_4_Stored_In_Tray = Json_Get($hJobj, '["TextId_Msg_Help_4_Stored_In_Tray"]')
+   Global $sTextId_Msg_Help_5_Elevated_Window_Admin = Json_Get($hJobj, '["TextId_Msg_Help_5_Elevated_Window_Admin"]')
+EndFunc
+
 Func InitializeTray()
    ; == Tray Creation Section ==
-   Global $hTrayRestoreAllWnd = TrayCreateItem("Restore All Windows (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
+   Global $hTrayRestoreAllWnd = TrayCreateItem($sTextId_Tray_Restore_All_Windows & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
    TrayCreateItem("") ;//Create a straight line
-   $opt = TrayCreateMenu("Extra")
-   Global $hTrayAltF4EndProcess = TrayCreateItem("Alt-F4 forces window's process to exit", $opt)
+   $opt = TrayCreateMenu($sTextId_Tray_Extra)
+   Global $hTrayAltF4EndProcess = TrayCreateItem($sTextId_Tray_Opt_AltF4_Force_Exit_Desc, $opt)
    TrayItemSetState($hTrayAltF4EndProcess, $bAltF4EndProcess)
-   Global $hTrayRestoreOnExit = TrayCreateItem("Restore hidden windows on exit", $opt)
+   Global $hTrayRestoreOnExit = TrayCreateItem($sTextId_Tray_Opt_Restore_On_Exit_Desc, $opt)
    TrayItemSetState($hTrayRestoreOnExit, $bRestoreOnExit)
-   Global $hTraySaveLegacyWindows = TrayCreateItem("Save legacy windows", $opt)
+   Global $hTraySaveLegacyWindows = TrayCreateItem($sTextId_Tray_Opt_Save_Legacy_Windows_Desc, $opt)
    TrayItemSetState($hTraySaveLegacyWindows, $bSaveLegacyWindows)
-   Global $hTrayEditHotkeys = TrayCreateItem("Edit Hotkeys")
-   Global $hTrayHelp = TrayCreateItem("Quick Help")
-   Global $hTrayExit = TrayCreateItem("Exit")
+   Global $hTrayRestoreFocus = TrayCreateItem($sTextId_Tray_Opt_Restore_Focus, $opt)
+   TrayItemSetState($hTrayRestoreFocus, $bRestoreFocus)
+   Global $hTrayEditHotkeys = TrayCreateItem($sTextId_Tray_Edit_Hotkeys)
+   Global $hTrayHelp = TrayCreateItem($sTextId_Tray_Quick_Help)
+   Global $hTrayExit = TrayCreateItem($sTextId_Tray_Exit)
 EndFunc
 
 Func InitializeGUIs()
    ; == GUI Creation Section ==
-   Global $hGUIHotkeyEdit = GUICreate("Edit MinimizeToTray Hotkeys", 300, 300)
-   Global $hGUIHotkeyEdit_Btn_OK = GUICtrlCreateButton("OK", 30, 260, 80, 24)
-   Global $hGUIHotkeyEdit_Btn_Default = GUICtrlCreateButton("Default", 170, 260, 80, 24)
-   GUICtrlCreateLabel("Hide active window", 10, 10)
+   Global $hGUIHotkeyEdit = GUICreate($sTextId_GUI_Edit_Hotkeys, 300, 300)
+   Global $hGUIHotkeyEdit_Btn_OK = GUICtrlCreateButton($sTextId_GUI_OK, 30, 260, 80, 24)
+   Global $hGUIHotkeyEdit_Btn_Default = GUICtrlCreateButton($sTextId_GUI_Default, 170, 260, 80, 24)
+   GUICtrlCreateLabel($sTextId_GUI_Hide_Active_Window, 10, 10)
    Global $hGUIHotkeyEdit_HK_HideWnd = _GUICtrlHotkey_Create($hGUIHotkeyEdit, 8, 30)
    _GUICtrlHotkey_SetRules($hGUIHotkeyEdit_HK_HideWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
    _GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_HideWnd, $sHK_HideWnd)
 
-   GUICtrlCreateLabel("Restore last window", 10, 60)
+   GUICtrlCreateLabel($sTextId_GUI_Restore_Last_Window, 10, 60)
    Global $hGUIHotkeyEdit_HK_RestoreLastWnd = _GUICtrlHotkey_Create($hGUIHotkeyEdit, 8, 80)
    _GUICtrlHotkey_SetRules($hGUIHotkeyEdit_HK_RestoreLastWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
    _GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_RestoreLastWnd, $sHK_RestoreLastWnd)
 
-   GUICtrlCreateLabel("Restore all hidden windows", 10, 110)
+   GUICtrlCreateLabel($sTextId_GUI_Restore_All_Windows, 10, 110)
    Global $hGUIHotkeyEdit_HK_RestoreAllWnd = _GUICtrlHotkey_Create($hGUIHotkeyEdit, 8, 130)
    _GUICtrlHotkey_SetRules($hGUIHotkeyEdit_HK_RestoreAllWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
    _GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_RestoreAllWnd, $sHK_RestoreAllWnd)
 
-   GUICtrlCreateLabel("ESC key and ALT-F4 cannot be selected because they will interfere with system hotkeys.", 10, 165, 280, 50)
+   GUICtrlCreateLabel($sTextId_GUI_Warning_Key_Overlap, 10, 165, 280, 50)
 EndFunc
 
 Func HandleTrayEvents()
@@ -138,6 +174,9 @@ Func HandleTrayEvents()
 	  Case $hTraySaveLegacyWindows
 		 ToggleOpt($bSaveLegacyWindows, $hTraySaveLegacyWindows)
 		 IniWrite($CONFIG_INI, "Extra", "SAVE_LEGACY_WINDOWS", BoolToText($bSaveLegacyWindows))
+	  Case $hTrayRestoreFocus
+		 ToggleOpt($bRestoreFocus, $hTrayRestoreFocus)
+		 IniWrite($CONFIG_INI, "Extra", "RESTORE_FOCUS", BoolToText($bRestoreFocus))
 	  Case $hTrayRestoreAllWnd
 		 RestoreAllWnd()
 	  Case $hTrayExit
@@ -182,7 +221,7 @@ Func EditHotkeys()
 
 			; Validate new hotkeys
 			If $sHK_HideWnd == "" Then
-			   MsgBox(16, "", "Hotkeys must not be empty.")
+			   MsgBox(16, "", $sTextId_GUI_Warning_Key_Empty)
 			   ContinueLoop
 			EndIf
 
@@ -192,7 +231,7 @@ Func EditHotkeys()
 			IniWrite($CONFIG_INI, "Hotkeys", "RESTORE_ALL_WINDOWS", $sHK_RestoreAllWnd)
 
 			; Update Tray Text for Restore All Windows
-			TrayItemSetText($hTrayRestoreAllWnd, "Restore All Windows (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
+			TrayItemSetText($hTrayRestoreAllWnd, $sTextId_GUI_Restore_All_Windows & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
 			ExitLoop
 		 Case $hGUIHotkeyEdit_Btn_Default
 			_GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_HideWnd, $DEFAULT_HIDE_WND_HK)
@@ -237,6 +276,9 @@ Func RestoreWnd($hfWnd)
    $SEMAPHORE = 0
    Local $nIndex = _ArraySearch($aHiddenWndList, $hfWnd)
    WinSetState($hfWnd, "", @SW_SHOW)
+   If $bRestoreFocus == True Then
+	  WinActivate($hfWnd)
+   EndIf
    If $nIndex >= 0 Then
 	  If $nIndex < UBound($aTrayItemHandles) Then
 		 TrayItemDelete($aTrayItemHandles[$nIndex])
@@ -332,11 +374,11 @@ EndFunc   ;==>RestoreLastShutdownWindows
 
 
 Func Help()
-   MsgBox(64, "MinimizeToTray " & $VERSION, "Press [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] to hide currently active Window." & @CRLF _
-		  & "Press [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] to restore last hidden Window." & @CRLF _
-		  & "Hidden Windows are stored in MTT tray icon." & @CRLF _
-		  & "If the window you want to hide is elevated to administrative level, you must run MTT as Administrator." & @CRLF & @CRLF _
-		  & "sandwichdoge@gmail.com")
+   MsgBox(64, "MinimizeToTray " & $VERSION, $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
+		  & $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] " & $sTextId_Msg_Help_3_To_Restore & @CRLF _
+		  & $sTextId_Msg_Help_4_Stored_In_Tray & @CRLF _
+		  & $sTextId_Msg_Help_5_Elevated_Window_Admin & @CRLF & @CRLF _
+		  & "https://github.com/sandwichdoge/MinimizeToTray")
 EndFunc   ;==>Help
 
 
