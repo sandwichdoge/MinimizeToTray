@@ -84,7 +84,7 @@ Func InitializeConfigs()
    Global $bSaveLegacyWindows = TextToBool($sSaveLegacyWindows)
    Global $bRestoreFocus = TextToBool($sRestoreFocus)
 
-   Global $sLanguage = IniRead($CONFIG_INI, "Extra", "Language", "en")
+   Global $sLanguage = IniRead($CONFIG_INI, "Extra", "LANGUAGE", "en")
 
    HotKeySet($sHK_HideWnd, "HideCurrentWnd")
    HotKeySet($sHK_RestoreLastWnd, "RestoreLastWnd")
@@ -96,44 +96,59 @@ EndFunc
 Func InitializeLanguage()
    Local $sLanguageFile = FileRead("language_gen\" & $sLanguage & ".json")
    Local $hJobj = Json_Decode($sLanguageFile)
-   Global $sTextId_Already_Running = Json_Get($hJobj, '["TextId_Already_Running"]')
-   Global $sTextId_Tray_Restore_All_Windows = Json_Get($hJobj, '["TextId_Tray_Restore_All_Windows"]')
-   Global $sTextId_Tray_Extra = Json_Get($hJobj, '["TextId_Tray_Extra"]')
-   Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_AltF4_Force_Exit_Desc"]')
-   Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_Restore_On_Exit_Desc"]')
-   Global $sTextId_Tray_Opt_Save_Legacy_Windows_Desc = Json_Get($hJobj, '["TextId_Tray_Opt_Save_Legacy_Windows_Desc"]')
-   Global $sTextId_Tray_Opt_Restore_Focus = Json_Get($hJobj, '["TextId_Tray_Opt_Restore_Focus"]')
-   Global $sTextId_Tray_Edit_Hotkeys = Json_Get($hJobj, '["TextId_Tray_Edit_Hotkeys"]')
-   Global $sTextId_Tray_Quick_Help = Json_Get($hJobj, '["TextId_Tray_Quick_Help"]')
-   Global $sTextId_Tray_Exit = Json_Get($hJobj, '["TextId_Tray_Exit"]')
-   Global $sTextId_GUI_Edit_Hotkeys = Json_Get($hJobj, '["TextId_GUI_Edit_Hotkeys"]')
-   Global $sTextId_GUI_OK = Json_Get($hJobj, '["TextId_GUI_OK"]')
-   Global $sTextId_GUI_Default = Json_Get($hJobj, '["TextId_GUI_Default"]')
-   Global $sTextId_GUI_Hide_Active_Window = Json_Get($hJobj, '["TextId_GUI_Hide_Active_Window"]')
-   Global $sTextId_GUI_Restore_Last_Window = Json_Get($hJobj, '["TextId_GUI_Restore_Last_Window"]')
-   Global $sTextId_GUI_Restore_All_Windows = Json_Get($hJobj, '["TextId_GUI_Restore_All_Windows"]')
-   Global $sTextId_GUI_Warning_Key_Overlap = Json_Get($hJobj, '["TextId_GUI_Warning_Key_Overlap"]')
-   Global $sTextId_GUI_Warning_Key_Empty = Json_Get($hJobj, '["TextId_GUI_Warning_Key_Empty"]')
-   Global $sTextId_Msg_Help_1_Press = Json_Get($hJobj, '["TextId_Msg_Help_1_Press"]')
-   Global $sTextId_Msg_Help_2_To_Hide_Active = Json_Get($hJobj, '["TextId_Msg_Help_2_To_Hide_Active"]')
-   Global $sTextId_Msg_Help_3_To_Restore = Json_Get($hJobj, '["TextId_Msg_Help_3_To_Restore"]')
-   Global $sTextId_Msg_Help_4_Stored_In_Tray = Json_Get($hJobj, '["TextId_Msg_Help_4_Stored_In_Tray"]')
-   Global $sTextId_Msg_Help_5_Elevated_Window_Admin = Json_Get($hJobj, '["TextId_Msg_Help_5_Elevated_Window_Admin"]')
+   Global $sTextId_Already_Running = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Already_Running"]')
+   Global $sTextId_Tray_Restore_All_Windows = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Restore_All_Windows"]')
+   Global $sTextId_Tray_Extra = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Extra"]')
+   Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_AltF4_Force_Exit_Desc"]')
+   Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_On_Exit_Desc"]')
+   Global $sTextId_Tray_Opt_Save_Legacy_Windows_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Save_Legacy_Windows_Desc"]')
+   Global $sTextId_Tray_Opt_Restore_Focus = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_Focus"]')
+   Global $sTextId_Tray_Edit_Hotkeys = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Edit_Hotkeys"]')
+   Global $sTextId_Tray_Quick_Help = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Quick_Help"]')
+   Global $sTextId_Tray_Exit = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Exit"]')
+   Global $sTextId_GUI_Edit_Hotkeys = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Edit_Hotkeys"]')
+   Global $sTextId_GUI_OK = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_OK"]')
+   Global $sTextId_GUI_Default = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Default"]')
+   Global $sTextId_GUI_Hide_Active_Window = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Hide_Active_Window"]')
+   Global $sTextId_GUI_Restore_Last_Window = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Restore_Last_Window"]')
+   Global $sTextId_GUI_Restore_All_Windows = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Restore_All_Windows"]')
+   Global $sTextId_GUI_Warning_Key_Overlap = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Warning_Key_Overlap"]')
+   Global $sTextId_GUI_Warning_Key_Empty = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Warning_Key_Empty"]')
+   Global $sTextId_GUI_Language = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Language"]')
+   Global $sTextId_Msg_Help_1_Press = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_1_Press"]')
+   Global $sTextId_Msg_Help_2_To_Hide_Active = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_2_To_Hide_Active"]')
+   Global $sTextId_Msg_Help_3_To_Restore = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_3_To_Restore"]')
+   Global $sTextId_Msg_Help_4_Stored_In_Tray = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_4_Stored_In_Tray"]')
+   Global $sTextId_Msg_Help_5_Elevated_Window_Admin = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_5_Elevated_Window_Admin"]')
 EndFunc
 
 Func InitializeTray()
+   Global $hTrayRestoreAllWnd
+   Global $hTrayLine1
+   Global $hTrayEditHotkeys
+   Global $hTrayOpt
+   Global $hTrayHelp
+   Global $hTrayExit
+   TrayItemDelete($hTrayRestoreAllWnd)
+   TrayItemDelete($hTrayLine1)
+   TrayItemDelete($hTrayEditHotkeys)
+   TrayItemDelete($hTrayOpt)
+   TrayItemDelete($hTrayHelp)
+   TrayItemDelete($hTrayExit)
    ; == Tray Creation Section ==
-   Global $hTrayRestoreAllWnd = TrayCreateItem($sTextId_Tray_Restore_All_Windows & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
-   TrayCreateItem("") ;//Create a straight line
-   $opt = TrayCreateMenu($sTextId_Tray_Extra)
-   Global $hTrayAltF4EndProcess = TrayCreateItem($sTextId_Tray_Opt_AltF4_Force_Exit_Desc, $opt)
+   $hTrayRestoreAllWnd = TrayCreateItem($sTextId_Tray_Restore_All_Windows & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
+   $hTrayLine1 = TrayCreateItem("") ;//Create a straight line
+
+   $hTrayOpt = TrayCreateMenu($sTextId_Tray_Extra)
+   Global $hTrayAltF4EndProcess = TrayCreateItem($sTextId_Tray_Opt_AltF4_Force_Exit_Desc, $hTrayOpt)
    TrayItemSetState($hTrayAltF4EndProcess, $bAltF4EndProcess)
-   Global $hTrayRestoreOnExit = TrayCreateItem($sTextId_Tray_Opt_Restore_On_Exit_Desc, $opt)
+   Global $hTrayRestoreOnExit = TrayCreateItem($sTextId_Tray_Opt_Restore_On_Exit_Desc, $hTrayOpt)
    TrayItemSetState($hTrayRestoreOnExit, $bRestoreOnExit)
-   Global $hTraySaveLegacyWindows = TrayCreateItem($sTextId_Tray_Opt_Save_Legacy_Windows_Desc, $opt)
+   Global $hTraySaveLegacyWindows = TrayCreateItem($sTextId_Tray_Opt_Save_Legacy_Windows_Desc, $hTrayOpt)
    TrayItemSetState($hTraySaveLegacyWindows, $bSaveLegacyWindows)
-   Global $hTrayRestoreFocus = TrayCreateItem($sTextId_Tray_Opt_Restore_Focus, $opt)
+   Global $hTrayRestoreFocus = TrayCreateItem($sTextId_Tray_Opt_Restore_Focus, $hTrayOpt)
    TrayItemSetState($hTrayRestoreFocus, $bRestoreFocus)
+
    Global $hTrayEditHotkeys = TrayCreateItem($sTextId_Tray_Edit_Hotkeys)
    Global $hTrayHelp = TrayCreateItem($sTextId_Tray_Quick_Help)
    Global $hTrayExit = TrayCreateItem($sTextId_Tray_Exit)
@@ -141,25 +156,31 @@ EndFunc
 
 Func InitializeGUIs()
    ; == GUI Creation Section ==
-   Global $hGUIHotkeyEdit = GUICreate($sTextId_GUI_Edit_Hotkeys, 300, 300)
-   Global $hGUIHotkeyEdit_Btn_OK = GUICtrlCreateButton($sTextId_GUI_OK, 30, 260, 80, 24)
-   Global $hGUIHotkeyEdit_Btn_Default = GUICtrlCreateButton($sTextId_GUI_Default, 170, 260, 80, 24)
+   Global $hGUIConfigs
+   GUIDelete($hGUIConfigs)
+   $hGUIConfigs = GUICreate($sTextId_GUI_Edit_Hotkeys, 300, 300)
+   Global $hGUIConfigs_Btn_OK = GUICtrlCreateButton($sTextId_GUI_OK, 20, 260, 100, 25)
+   Global $hGUIConfigs_Btn_Default = GUICtrlCreateButton($sTextId_GUI_Default, 160, 260, 100, 25)
    GUICtrlCreateLabel($sTextId_GUI_Hide_Active_Window, 10, 10)
-   Global $hGUIHotkeyEdit_HK_HideWnd = _GUICtrlHotkey_Create($hGUIHotkeyEdit, 8, 30)
-   _GUICtrlHotkey_SetRules($hGUIHotkeyEdit_HK_HideWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
-   _GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_HideWnd, $sHK_HideWnd)
+   Global $hGUIConfigs_HK_HideWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 30)
+   _GUICtrlHotkey_SetRules($hGUIConfigs_HK_HideWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
+   _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_HideWnd, $sHK_HideWnd)
 
    GUICtrlCreateLabel($sTextId_GUI_Restore_Last_Window, 10, 60)
-   Global $hGUIHotkeyEdit_HK_RestoreLastWnd = _GUICtrlHotkey_Create($hGUIHotkeyEdit, 8, 80)
-   _GUICtrlHotkey_SetRules($hGUIHotkeyEdit_HK_RestoreLastWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
-   _GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_RestoreLastWnd, $sHK_RestoreLastWnd)
+   Global $hGUIConfigs_HK_RestoreLastWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 80)
+   _GUICtrlHotkey_SetRules($hGUIConfigs_HK_RestoreLastWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
+   _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreLastWnd, $sHK_RestoreLastWnd)
 
    GUICtrlCreateLabel($sTextId_GUI_Restore_All_Windows, 10, 110)
-   Global $hGUIHotkeyEdit_HK_RestoreAllWnd = _GUICtrlHotkey_Create($hGUIHotkeyEdit, 8, 130)
-   _GUICtrlHotkey_SetRules($hGUIHotkeyEdit_HK_RestoreAllWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
-   _GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_RestoreAllWnd, $sHK_RestoreAllWnd)
+   Global $hGUIConfigs_HK_RestoreAllWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 130)
+   _GUICtrlHotkey_SetRules($hGUIConfigs_HK_RestoreAllWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
+   _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreAllWnd, $sHK_RestoreAllWnd)
 
    GUICtrlCreateLabel($sTextId_GUI_Warning_Key_Overlap, 10, 165, 280, 50)
+
+   GUICtrlCreateLabel($sTextId_GUI_Language, 10, 220, 100)
+   Global $hGUIConfigs_Language = GUICtrlCreateCombo("en", 110, 219, 100, 24)
+   GUICtrlSetData($hGUIConfigs_Language, "vi|de", $sLanguage)  ; Add more options to Language combobox, default to $sLanguage
 EndFunc
 
 Func HandleTrayEvents()
@@ -203,7 +224,7 @@ EndFunc
 
 
 Func EditHotkeys()
-   GUISetState(@SW_SHOW, $hGUIHotkeyEdit)
+   GUISetState(@SW_SHOW, $hGUIConfigs)
    ; Temporarily disable current hotkeys
    HotKeySet($sHK_HideWnd)
    HotKeySet($sHK_RestoreLastWnd)
@@ -213,11 +234,11 @@ Func EditHotkeys()
 	  Switch $msg
 		 Case $GUI_EVENT_CLOSE
 			ExitLoop
-		 Case $hGUIHotkeyEdit_Btn_OK
+		 Case $hGUIConfigs_Btn_OK
 			; Read GUI and save to config file
-			$sHK_HideWnd = _GUICtrlHotkey_GetHotkey($hGUIHotkeyEdit_HK_HideWnd)
-			$sHK_RestoreLastWnd = _GUICtrlHotkey_GetHotkey($hGUIHotkeyEdit_HK_RestoreLastWnd)
-			$sHK_RestoreAllWnd = _GUICtrlHotkey_GetHotkey($hGUIHotkeyEdit_HK_RestoreAllWnd)
+			$sHK_HideWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_HideWnd)
+			$sHK_RestoreLastWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_RestoreLastWnd)
+			$sHK_RestoreAllWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_RestoreAllWnd)
 
 			; Validate new hotkeys
 			If $sHK_HideWnd == "" Then
@@ -230,13 +251,22 @@ Func EditHotkeys()
 			IniWrite($CONFIG_INI, "Hotkeys", "RESTORE_LAST_WINDOW", $sHK_RestoreLastWnd)
 			IniWrite($CONFIG_INI, "Hotkeys", "RESTORE_ALL_WINDOWS", $sHK_RestoreAllWnd)
 
+			$sLanguage = GUICtrlRead($hGUIConfigs_Language)
+			IniWrite($CONFIG_INI, "Extra", "LANGUAGE", $sLanguage)
+
 			; Update Tray Text for Restore All Windows
 			TrayItemSetText($hTrayRestoreAllWnd, $sTextId_GUI_Restore_All_Windows & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
+
+			; Reinitialize UI Language
+			InitializeLanguage()
+			InitializeTray()
+			InitializeGUIs()
+
 			ExitLoop
-		 Case $hGUIHotkeyEdit_Btn_Default
-			_GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_HideWnd, $DEFAULT_HIDE_WND_HK)
-			_GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_RestoreLastWnd, $DEFAULT_RESTORE_LAST_WND_HK)
-			_GUICtrlHotkey_SetHotkey($hGUIHotkeyEdit_HK_RestoreAllWnd, $DEFAULT_RESTORE_ALL_WND_HK)
+		 Case $hGUIConfigs_Btn_Default
+			_GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_HideWnd, $DEFAULT_HIDE_WND_HK)
+			_GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreLastWnd, $DEFAULT_RESTORE_LAST_WND_HK)
+			_GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreAllWnd, $DEFAULT_RESTORE_ALL_WND_HK)
 	  EndSwitch
    WEnd
 
@@ -244,7 +274,7 @@ Func EditHotkeys()
    HotKeySet($sHK_HideWnd, "HideCurrentWnd")
    HotKeySet($sHK_RestoreLastWnd, "RestoreLastWnd")
    HotKeySet($sHK_RestoreAllWnd, "RestoreAllWnd")
-   GUISetState(@SW_HIDE, $hGUIHotkeyEdit)
+   GUISetState(@SW_HIDE, $hGUIConfigs)
 EndFunc
 
 
@@ -372,6 +402,14 @@ Func RestoreLastShutdownWindows()
    EndIf
 EndFunc   ;==>RestoreLastShutdownWindows
 
+Func LoadTextFromLanguageJsonObj(ByRef $hJobj, $sKey)
+   $sValue = Json_Get($hJobj, $sKey)
+   If $sValue Then
+	  Return $sValue
+   Else
+	  Return "Language_Load_Error"
+   EndIf
+EndFunc
 
 Func Help()
    MsgBox(64, "MinimizeToTray " & $VERSION, $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
