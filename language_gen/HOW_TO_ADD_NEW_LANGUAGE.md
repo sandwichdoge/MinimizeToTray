@@ -1,0 +1,3 @@
+- Edit Excel file language_gen.xlsx, add a column representing the new language.
+- Run ```python3 language_gen.py```.
+- Done.
