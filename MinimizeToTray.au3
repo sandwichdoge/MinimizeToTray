@@ -231,9 +231,12 @@ Func HandleTrayEvents()
 
 	; Check if a specific window's tray item was clicked
 	For $i = 0 To $nWindowStackSize - 1
-		If $hTrayMsg = $aWindowStack[$i][1] Then
-			RestoreWnd($aWindowStack[$i][0])
-			ExitLoop
+		; Check if the array element is valid before accessing it
+		If IsHWnd($aWindowStack[$i][0]) And $aWindowStack[$i][1] <> 0 Then
+			If $hTrayMsg = $aWindowStack[$i][1] Then
+				RestoreWnd($aWindowStack[$i][0])
+				ExitLoop
+			EndIf
 		EndIf
 	Next
 
@@ -332,24 +335,31 @@ Func RestoreWnd($hfWnd)
 		Return
 	EndIf
 
-	; Find the window in our stack
 	Local $nIndex = -1
+	Local $hTrayItemToDelete = 0
+
+	; Find the window in our stack and get its tray item handle
 	For $i = 0 To $nWindowStackSize - 1
 		If $aWindowStack[$i][0] = $hfWnd Then
 			$nIndex = $i
+			$hTrayItemToDelete = $aWindowStack[$i][1]
 			ExitLoop
 		EndIf
 	Next
 
-	; Show the window
-	WinSetState($hfWnd, "", @SW_SHOW)
-	If $bRestoreFocus = True Then
-		WinActivate($hfWnd)
+	; Check if the window handle is still valid BEFORE trying to show/activate
+	If WindowExists($hfWnd) Then
+		WinSetState($hfWnd, "", @SW_SHOW)
+		If $bRestoreFocus = True Then
+			WinActivate($hfWnd)
+		EndIf
+	Else
+		ConsoleWrite("!> Info: Window handle " & $hfWnd & " is no longer valid. Cleaning up tray item." & @CRLF)
 	EndIf
 
-	; Remove from our stack if found
+	; Remove from our stack and delete tray item IF found
 	If $nIndex >= 0 Then
-		TrayItemDelete($aWindowStack[$nIndex][1])
+		TrayItemDelete($hTrayItemToDelete) ; Use the stored handle
 
 		If $nIndex < $nWindowStackSize - 1 Then
 			; Move the last element to fill the gap
@@ -412,19 +422,30 @@ Func RestoreAllWnd()
 	EndIf
 
 	If $nWindowStackSize > 0 Then
-		; Show all windows first
+		Local $hLastValidWindow = 0
+
 		For $i = 0 To $nWindowStackSize - 1
-			WinSetState($aWindowStack[$i][0], "", @SW_SHOW)
+			Local $hWnd = $aWindowStack[$i][0]
+			Local $hTrayItem = $aWindowStack[$i][1]
 
-			TrayItemDelete($aWindowStack[$i][1])
-
-			; Bring focus to the last window if needed
-			If $i = $nWindowStackSize - 1 And $bRestoreFocus = True Then
-				WinActivate($aWindowStack[$i][0])
+			; Check if the window handle is still valid BEFORE trying to show/activate
+			If WindowExists($hWnd) Then
+				WinSetState($hWnd, "", @SW_SHOW)
+				$hLastValidWindow = $hWnd ; Keep track of the last valid window shown
+			Else
+				ConsoleWrite("!> Info: Window handle " & $hWnd & " is no longer valid during RestoreAll. Cleaning up tray item." & @CRLF)
 			EndIf
+
+			; Always delete the tray item
+			TrayItemDelete($hTrayItem)
 		Next
 
-		; Reset the window stack
+		; Bring focus to the last valid window that was restored, if requested
+		If $bRestoreFocus = True And IsHWnd($hLastValidWindow) Then
+			WinActivate($hLastValidWindow)
+		EndIf
+
+		; Reset the window stack completely
 		$nWindowStackSize = 0
 	EndIf
 
@@ -442,12 +463,15 @@ Func CloseWnd()
 	EndIf
 
 	Local $iPID = WinGetProcess($hWnd)
-	If $iPID = 0 Then
-		ConsoleWrite("!> Error: Couldn't get process ID for window." & @CRLF)
+	If $iPID <= 0 Then ; Check if PID is valid (greater than 0)
+		ConsoleWrite("!> Error: Couldn't get process ID for window handle " & $hWnd & "." & @CRLF)
 		Return
 	EndIf
 
 	ProcessClose($iPID)
+	If @error Then
+		ConsoleWrite("!> Warning: Failed to close process with PID " & $iPID & ". It might require elevated privileges or is unresponsive." & @CRLF)
+	EndIf
 EndFunc   ;==>CloseWnd
 
 
@@ -538,62 +562,6 @@ Func WindowExists($hWnd)
 EndFunc   ;==>WindowExists
 
 
-; Add garbage collection to clean up invalid window handles
-Func CleanupInvalidWindows()
-	; Try to acquire mutex
-	If _WinAPI_WaitForSingleObject($hMutex, 1000) <> 0 Then
-		Return
-	EndIf
-
-	Local $bNeedsCleanup = False
-
-	; Check each window in the stack
-	For $i = 0 To $nWindowStackSize - 1
-		If Not WindowExists($aWindowStack[$i][0]) Then
-			; Window no longer exists, mark for cleanup
-			$bNeedsCleanup = True
-			TrayItemDelete($aWindowStack[$i][1])
-			; Mark this slot as invalid
-			$aWindowStack[$i][0] = 0
-		EndIf
-	Next
-
-	; If we found invalid windows, clean up the array
-	If $bNeedsCleanup Then
-		Local $j = 0
-		For $i = 0 To $nWindowStackSize - 1
-			If $aWindowStack[$i][0] <> 0 Then
-				; Keep this window by moving it to the current valid position
-				If $i <> $j Then
-					$aWindowStack[$j][0] = $aWindowStack[$i][0]
-					$aWindowStack[$j][1] = $aWindowStack[$i][1]
-					$aWindowStack[$j][2] = $aWindowStack[$i][2]
-				EndIf
-				$j += 1
-			EndIf
-		Next
-
-		; Update the stack size
-		$nWindowStackSize = $j
-	EndIf
-
-	; Release mutex
-	_WinAPI_ReleaseMutex($hMutex)
-EndFunc   ;==>CleanupInvalidWindows
-
-
-; Run cleanup periodically
-Func PeriodicTasks()
-	Static $lastCleanupTime = TimerInit()
-
-	; Run cleanup every 30 seconds
-	If TimerDiff($lastCleanupTime) > 30000 Then
-		CleanupInvalidWindows()
-		$lastCleanupTime = TimerInit()
-	EndIf
-EndFunc   ;==>PeriodicTasks
-
-
 Func HideWnd($hfWnd)
 	; Try to acquire mutex with timeout
 	If _WinAPI_WaitForSingleObject($hMutex, 1000) <> 0 Then
@@ -611,13 +579,26 @@ Func HideWnd($hfWnd)
 
 	; Hide the window
 	WinSetState($hfWnd, "", @SW_HIDE)
+	If @error Then ; Check if hiding failed (e.g., window closed between check and hide)
+		ConsoleWrite("!> Warning: Failed to hide window handle " & $hfWnd & ". It might have closed." & @CRLF)
+		_WinAPI_ReleaseMutex($hMutex)
+		Return
+	EndIf
 
 	Local $hTrayWnd = TrayCreateItem($sTitle, -1, 0)
 
 	; Check if we need to resize the array
 	If $nWindowStackSize >= UBound($aWindowStack) Then
 		; Resize the array in larger chunks (double the size) to reduce resize operations
-		ReDim $aWindowStack[UBound($aWindowStack) * 2][3]
+		Local $iNewSize = UBound($aWindowStack) * 2
+		ConsoleWrite("*> Info: Resizing window stack array to " & $iNewSize & @CRLF)
+		ReDim $aWindowStack[$iNewSize][3]
+		If @error Then
+			ConsoleWrite("!> Error: Failed to resize window stack array." & @CRLF)
+			TrayItemDelete($hTrayWnd)  ; Clean up the tray item we just created
+			_WinAPI_ReleaseMutex($hMutex)
+			Return  ; Cannot add window if resize failed
+		EndIf
 	EndIf
 
 	; Add to our window stack
@@ -650,8 +631,5 @@ Func Main()
 
 	While 1
 		HandleTrayEvents()
-		PeriodicTasks()
-
-		Sleep(10)
 	WEnd
 EndFunc   ;==>Main
