@@ -1,6 +1,6 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=MTT.ico
-#AutoIt3Wrapper_Outfile=MinimizeToTray.Exe
+#AutoIt3Wrapper_Outfile=MinimizeToTra2y.Exe
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ;//Minimize to tray
 ;//sandwichdoge@gmail.com
@@ -10,6 +10,7 @@
 #include <Array.au3>
 #include <WinAPI.au3>
 #include <GuiConstantsEx.au3>
+#include <File.au3>
 #include "libs/GUIHotkey.au3"
 #include "libs/Json.au3"
 #include "cmdline.au3"
@@ -155,32 +156,70 @@ Func InitializeTray()
 EndFunc
 
 Func InitializeGUIs()
-   ; == GUI Creation Section ==
-   Global $hGUIConfigs
-   GUIDelete($hGUIConfigs)
-   $hGUIConfigs = GUICreate($sTextId_GUI_Edit_Hotkeys, 300, 300)
-   Global $hGUIConfigs_Btn_OK = GUICtrlCreateButton($sTextId_GUI_OK, 20, 260, 100, 25)
-   Global $hGUIConfigs_Btn_Default = GUICtrlCreateButton($sTextId_GUI_Default, 160, 260, 100, 25)
-   GUICtrlCreateLabel($sTextId_GUI_Hide_Active_Window, 10, 10)
-   Global $hGUIConfigs_HK_HideWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 30)
-   _GUICtrlHotkey_SetRules($hGUIConfigs_HK_HideWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
-   _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_HideWnd, $sHK_HideWnd)
+    ; == GUI Creation Section ==
+    Global $hGUIConfigs
+    GUIDelete($hGUIConfigs)
+    $hGUIConfigs = GUICreate($sTextId_GUI_Edit_Hotkeys, 300, 300)
+    Global $hGUIConfigs_Btn_OK = GUICtrlCreateButton($sTextId_GUI_OK, 20, 260, 100, 25)
+    Global $hGUIConfigs_Btn_Default = GUICtrlCreateButton($sTextId_GUI_Default, 160, 260, 100, 25)
+    GUICtrlCreateLabel($sTextId_GUI_Hide_Active_Window, 10, 10)
+    Global $hGUIConfigs_HK_HideWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 30)
+    _GUICtrlHotkey_SetRules($hGUIConfigs_HK_HideWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
+    _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_HideWnd, $sHK_HideWnd)
 
-   GUICtrlCreateLabel($sTextId_GUI_Restore_Last_Window, 10, 60)
-   Global $hGUIConfigs_HK_RestoreLastWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 80)
-   _GUICtrlHotkey_SetRules($hGUIConfigs_HK_RestoreLastWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
-   _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreLastWnd, $sHK_RestoreLastWnd)
+    GUICtrlCreateLabel($sTextId_GUI_Restore_Last_Window, 10, 60)
+    Global $hGUIConfigs_HK_RestoreLastWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 80)
+    _GUICtrlHotkey_SetRules($hGUIConfigs_HK_RestoreLastWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
+    _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreLastWnd, $sHK_RestoreLastWnd)
 
-   GUICtrlCreateLabel($sTextId_GUI_Restore_All_Windows, 10, 110)
-   Global $hGUIConfigs_HK_RestoreAllWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 130)
-   _GUICtrlHotkey_SetRules($hGUIConfigs_HK_RestoreAllWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
-   _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreAllWnd, $sHK_RestoreAllWnd)
+    GUICtrlCreateLabel($sTextId_GUI_Restore_All_Windows, 10, 110)
+    Global $hGUIConfigs_HK_RestoreAllWnd = _GUICtrlHotkey_Create($hGUIConfigs, 8, 130)
+    _GUICtrlHotkey_SetRules($hGUIConfigs_HK_RestoreAllWnd, $HKCOMB_NONE, $HOTKEYF_ALT)
+    _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreAllWnd, $sHK_RestoreAllWnd)
 
-   GUICtrlCreateLabel($sTextId_GUI_Warning_Key_Overlap, 10, 165, 280, 50)
+    GUICtrlCreateLabel($sTextId_GUI_Warning_Key_Overlap, 10, 165, 280, 50)
 
-   GUICtrlCreateLabel($sTextId_GUI_Language, 10, 220, 100)
-   Global $hGUIConfigs_Language = GUICtrlCreateCombo("en", 110, 219, 100, 24)
-   GUICtrlSetData($hGUIConfigs_Language, "vi|de", $sLanguage)  ; Add more options to Language combobox, default to $sLanguage
+    Local $sLangDir = @ScriptDir & "\language_gen" ; Assumes language_gen is in the same dir as the script/exe
+    Local $aLangFiles = _FileListToArray($sLangDir, "*.json", $FLTA_FILES)
+    Local $sLangListString = ""
+    Local $sCurrentLangValid = False
+
+    If IsArray($aLangFiles) Then
+        For $i = 1 To $aLangFiles[0] ; Start from index 1, index 0 holds the count
+            Local $sLangCode = StringTrimRight($aLangFiles[$i], 5) ; Remove ".json" extension
+            If $sLangListString = "" Then
+                $sLangListString = $sLangCode
+            Else
+                $sLangListString &= "|" & $sLangCode
+            EndIf
+            ; Check if the language read from INI is among the found files
+            If StringLower($sLangCode) == StringLower($sLanguage) Then
+                $sCurrentLangValid = True
+            EndIf
+        Next
+    EndIf
+
+    ; Fallback if no language files are found or the current language is invalid
+    If $sLangListString = "" Then
+        $sLangListString = "en" ; Default to English if no files found
+        If StringLower($sLanguage) <> "en" Then $sLanguage = "en" ; Force current lang to en if it wasn't
+        $sCurrentLangValid = True ; 'en' is now considered valid
+    ElseIf Not $sCurrentLangValid Then
+        ; If the language from INI wasn't found, default to the first one in the list (or 'en' if available)
+        Local $aTempLangList = StringSplit($sLangListString, "|")
+        If _ArraySearch($aTempLangList, "en", 0, 0, 0, 1) > 0 Then ; Check if 'en' exists (case-insensitive)
+             $sLanguage = "en"
+        Else
+             $sLanguage = $aTempLangList[1] ; Default to the first language found
+        EndIf
+        ConsoleWrite("!> Warning: Configured language '" & $sLanguage & "' not found. Defaulting to '" & $sLanguage & "'" & @CRLF)
+    EndIf
+
+
+    GUICtrlCreateLabel($sTextId_GUI_Language, 10, 220, 100)
+    Global $hGUIConfigs_Language = GUICtrlCreateCombo("", 110, 219, 100, 24) ; Create empty first
+    ; Use the dynamically generated list and the validated $sLanguage
+    GUICtrlSetData($hGUIConfigs_Language, $sLangListString, $sLanguage)
 EndFunc
 
 Func HandleTrayEvents()
