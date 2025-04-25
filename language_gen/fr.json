@@ -6,6 +6,7 @@
   "TextId_Tray_Opt_AltF4_Force_Exit_Desc": "Alt-F4 force le processus de la fenêtre à quitter",
   "TextId_Tray_Opt_Restore_On_Exit_Desc": "Restaurer les fenêtres masquées en quittant",
   "TextId_Tray_Opt_Save_Legacy_Windows_Desc": "Enregistrer les anciennes fenêtres",
+  "TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc": "Alt+Échap auto pour un changement de focus fluide lors du masquage",
   "TextId_Tray_Opt_Restore_Focus": "Revenir au focus sur les fenêtres restaurées",
   "TextId_Tray_Edit_Hotkeys": "Configurations",
   "TextId_Tray_Quick_Help": "Aide rapide",

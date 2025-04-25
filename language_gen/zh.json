@@ -6,6 +6,7 @@
   "TextId_Tray_Opt_AltF4_Force_Exit_Desc" : "Alt-F4 强制退出窗口进程",
   "TextId_Tray_Opt_Restore_On_Exit_Desc" : "退出时还原隐藏的窗口",
   "TextId_Tray_Opt_Save_Legacy_Windows_Desc" : "保存遗留窗口",
+  "TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc": "隐藏时自动 Alt+Esc 以平滑切换焦点",
   "TextId_Tray_Opt_Restore_Focus" : "将焦点返回给还原窗口",
   "TextId_Tray_Edit_Hotkeys" : "设置快捷键",
   "TextId_Tray_Quick_Help" : "快速帮助",

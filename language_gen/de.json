@@ -6,6 +6,7 @@
 "TextId_Tray_Opt_AltF4_Force_Exit_Desc" : "Alt-F4 erzwingt das Beenden des Fensters",
 "TextId_Tray_Opt_Restore_On_Exit_Desc" : "Versteckte Fenster beim Beenden wiederherstellen",
 "TextId_Tray_Opt_Save_Legacy_Windows_Desc" : "Legacy-Fenster speichern",
+"TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc": "Automatisches Alt+Esc für Fokuswechsel beim Verstecken",
 "TextId_Tray_Opt_Restore_Focus" : "Fokus auf wiederhergestellte Fenster zurücksetzen",
 "TextId_Tray_Edit_Hotkeys" : "Konfigurationen",
 "TextId_Tray_Quick_Help" : "Schnelle Hilfe",

@@ -15,7 +15,6 @@
 #include "libs/Json.au3"
 #include "cmdline.au3"
 
-Global Const $VERSION = ""
 Global Const $CONFIG_INI = "MTTconf.ini"
 
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
@@ -23,7 +22,7 @@ Global Const $DEFAULT_RESTORE_LAST_WND_HK = "!{f2}"
 Global Const $DEFAULT_RESTORE_ALL_WND_HK = "{f10}"
 
 If CmdlineHasParams() Then
-   ;Cmdline mode does not care about tray and GUI whatsoever.
+   ;//Cmdline mode does not care about tray and GUI whatsoever.
    CmdlineRunCliMode()
    Exit
 EndIf
@@ -52,20 +51,18 @@ Func Main()
 
    ;//Exit if MTT is already running.
    If _Singleton("MTT", 1) = 0 Then
-	  TrayTip("MinimizeToTray " & $VERSION, $sTextId_Already_Running, 2)
-	  Sleep(2000)
-	  Exit
+      TrayTip("MinimizeToTray", $sTextId_Already_Running, 2)
+      Sleep(2000)
+      Exit
    EndIf
 
-   TrayTip("MinimizeToTray " & $VERSION, $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
-		  & $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] " & $sTextId_Msg_Help_3_To_Restore & @CRLF _
-		  & $sTextId_Msg_Help_4_Stored_In_Tray, 5)
-
-   RestoreLastShutdownWindows()
+   TrayTip("MinimizeToTray", $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
+         & $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] " & $sTextId_Msg_Help_3_To_Restore & @CRLF _
+         & $sTextId_Msg_Help_4_Stored_In_Tray, 5)
 
    ;//Main Loop
    While 1
-	  HandleTrayEvents()
+      HandleTrayEvents()
    WEnd
 EndFunc
 
@@ -75,15 +72,15 @@ Func InitializeConfigs()
    Global $sHK_RestoreLastWnd = IniRead($CONFIG_INI, "Hotkeys", "RESTORE_LAST_WINDOW", $DEFAULT_RESTORE_LAST_WND_HK)
    Global $sHK_RestoreAllWnd = IniRead($CONFIG_INI, "Hotkeys", "RESTORE_ALL_WINDOWS", $DEFAULT_RESTORE_ALL_WND_HK)
 
-   Global $sRestoreAllWndsOnExit = IniRead($CONFIG_INI, "Extra", "RESTORE_ALL_WINDOWS_ON_EXIT", "False")
+   Global $sRestoreAllWndsOnExit = IniRead($CONFIG_INI, "Extra", "RESTORE_ALL_WINDOWS_ON_EXIT", "True")
    Global $sAltF4EndProcess = IniRead($CONFIG_INI, "Extra", "ALT_F4_FORCE_END_PROCESS", "False")
-   Global $sSaveLegacyWindows = IniRead($CONFIG_INI, "Extra", "SAVE_LEGACY_WINDOWS", "False")
-   Global $sRestoreFocus = IniRead($CONFIG_INI, "Extra", "RESTORE_FOCUS", "False")
+   Global $sRestoreFocus = IniRead($CONFIG_INI, "Extra", "RESTORE_FOCUS", "True")
+   Global $sAltEscFocusChange = IniRead($CONFIG_INI, "Extra", "ALT_ESC_FOCUS_CHANGE", "True")
 
    Global $bAltF4EndProcess = TextToBool($sAltF4EndProcess)
    Global $bRestoreOnExit = TextToBool($sRestoreAllWndsOnExit)
-   Global $bSaveLegacyWindows = TextToBool($sSaveLegacyWindows)
    Global $bRestoreFocus = TextToBool($sRestoreFocus)
+   Global $bAltEscFocusChange = TextToBool($sAltEscFocusChange)
 
    Global $sLanguage = IniRead($CONFIG_INI, "Extra", "LANGUAGE", "en")
 
@@ -102,8 +99,8 @@ Func InitializeLanguage()
    Global $sTextId_Tray_Extra = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Extra"]')
    Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_AltF4_Force_Exit_Desc"]')
    Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_On_Exit_Desc"]')
-   Global $sTextId_Tray_Opt_Save_Legacy_Windows_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Save_Legacy_Windows_Desc"]')
    Global $sTextId_Tray_Opt_Restore_Focus = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_Focus"]')
+   Global $sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc"]')
    Global $sTextId_Tray_Edit_Hotkeys = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Edit_Hotkeys"]')
    Global $sTextId_Tray_Quick_Help = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Quick_Help"]')
    Global $sTextId_Tray_Exit = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Exit"]')
@@ -145,10 +142,10 @@ Func InitializeTray()
    TrayItemSetState($hTrayAltF4EndProcess, $bAltF4EndProcess)
    Global $hTrayRestoreOnExit = TrayCreateItem($sTextId_Tray_Opt_Restore_On_Exit_Desc, $hTrayOpt)
    TrayItemSetState($hTrayRestoreOnExit, $bRestoreOnExit)
-   Global $hTraySaveLegacyWindows = TrayCreateItem($sTextId_Tray_Opt_Save_Legacy_Windows_Desc, $hTrayOpt)
-   TrayItemSetState($hTraySaveLegacyWindows, $bSaveLegacyWindows)
    Global $hTrayRestoreFocus = TrayCreateItem($sTextId_Tray_Opt_Restore_Focus, $hTrayOpt)
    TrayItemSetState($hTrayRestoreFocus, $bRestoreFocus)
+   Global $hTrayAltEscFocusChange = TrayCreateItem($sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc, $hTrayOpt)
+   TrayItemSetState($hTrayAltEscFocusChange, $bAltEscFocusChange) ; Set initial check state based on config
 
    Global $hTrayEditHotkeys = TrayCreateItem($sTextId_Tray_Edit_Hotkeys)
    Global $hTrayHelp = TrayCreateItem($sTextId_Tray_Quick_Help)
@@ -225,39 +222,40 @@ EndFunc
 Func HandleTrayEvents()
    $hTrayMsg = TrayGetMsg()
    Switch $hTrayMsg
-	  Case $hTrayAltF4EndProcess
-		 ToggleOpt($bAltF4EndProcess, $hTrayAltF4EndProcess)
-		 IniWrite($CONFIG_INI, "Extra", "ALT_F4_FORCE_END_PROCESS", BoolToText($bAltF4EndProcess))
-	  Case $hTrayRestoreOnExit
-		 ToggleOpt($bRestoreOnExit, $hTrayRestoreOnExit)
-		 IniWrite($CONFIG_INI, "Extra", "RESTORE_ALL_WINDOWS_ON_EXIT", BoolToText($bRestoreOnExit))
-	  Case $hTraySaveLegacyWindows
-		 ToggleOpt($bSaveLegacyWindows, $hTraySaveLegacyWindows)
-		 IniWrite($CONFIG_INI, "Extra", "SAVE_LEGACY_WINDOWS", BoolToText($bSaveLegacyWindows))
-	  Case $hTrayRestoreFocus
-		 ToggleOpt($bRestoreFocus, $hTrayRestoreFocus)
-		 IniWrite($CONFIG_INI, "Extra", "RESTORE_FOCUS", BoolToText($bRestoreFocus))
-	  Case $hTrayRestoreAllWnd
-		 RestoreAllWnd()
-	  Case $hTrayExit
-		 ExitS()
-	  Case $hTrayHelp
-		 Help()
-	  Case $hTrayEditHotkeys
-		 EditHotkeys()
+      Case $hTrayAltF4EndProcess
+         ToggleOpt($bAltF4EndProcess, $hTrayAltF4EndProcess)
+         IniWrite($CONFIG_INI, "Extra", "ALT_F4_FORCE_END_PROCESS", BoolToText($bAltF4EndProcess))
+      Case $hTrayRestoreOnExit
+         ToggleOpt($bRestoreOnExit, $hTrayRestoreOnExit)
+         IniWrite($CONFIG_INI, "Extra", "RESTORE_ALL_WINDOWS_ON_EXIT", BoolToText($bRestoreOnExit))
+      Case $hTrayRestoreFocus
+         ToggleOpt($bRestoreFocus, $hTrayRestoreFocus)
+         IniWrite($CONFIG_INI, "Extra", "RESTORE_FOCUS", BoolToText($bRestoreFocus))
+      ; *** NEW: Handle click on Alt+Esc tray menu item ***
+      Case $hTrayAltEscFocusChange
+         ToggleOpt($bAltEscFocusChange, $hTrayAltEscFocusChange)
+         IniWrite($CONFIG_INI, "Extra", "ALT_ESC_FOCUS_CHANGE", BoolToText($bAltEscFocusChange))
+      Case $hTrayRestoreAllWnd
+         RestoreAllWnd()
+      Case $hTrayExit
+         ExitS()
+      Case $hTrayHelp
+         Help()
+      Case $hTrayEditHotkeys
+         EditHotkeys()
    EndSwitch
 
    If $SEMAPHORE = 0 Then  ; No mutex locks in AutoIt. Pseudo-mutex implementation failed. This is a workaround..
-	  Return
+      Return
    EndIf
 
    For $i = 0 To UBound($aTrayItemHandles) - 1
-	 If $hTrayMsg = $aTrayItemHandles[$i] Then
-		 If $i < UBound($aHiddenWndList) Then
-			 RestoreWnd($aHiddenWndList[$i])
-		 EndIf
-		 ExitLoop
-	 EndIf
+     If $hTrayMsg = $aTrayItemHandles[$i] Then
+         If $i < UBound($aHiddenWndList) Then
+            RestoreWnd($aHiddenWndList[$i])
+         EndIf
+         ExitLoop
+     EndIf
    Next
 EndFunc
 
@@ -269,44 +267,44 @@ Func EditHotkeys()
    HotKeySet($sHK_RestoreLastWnd)
    HotKeySet($sHK_RestoreAllWnd)
    While 1
-	  $msg = GUIGetMsg()
-	  Switch $msg
-		 Case $GUI_EVENT_CLOSE
-			ExitLoop
-		 Case $hGUIConfigs_Btn_OK
-			; Read GUI and save to config file
-			$sHK_HideWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_HideWnd)
-			$sHK_RestoreLastWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_RestoreLastWnd)
-			$sHK_RestoreAllWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_RestoreAllWnd)
+      $msg = GUIGetMsg()
+      Switch $msg
+         Case $GUI_EVENT_CLOSE
+            ExitLoop
+         Case $hGUIConfigs_Btn_OK
+            ; Read GUI and save to config file
+            $sHK_HideWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_HideWnd)
+            $sHK_RestoreLastWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_RestoreLastWnd)
+            $sHK_RestoreAllWnd = _GUICtrlHotkey_GetHotkey($hGUIConfigs_HK_RestoreAllWnd)
 
-			; Validate new hotkeys
-			If $sHK_HideWnd == "" Then
-			   MsgBox(16, "", $sTextId_GUI_Warning_Key_Empty)
-			   ContinueLoop
-			EndIf
+            ; Validate new hotkeys
+            If $sHK_HideWnd == "" Then
+               MsgBox(16, "", $sTextId_GUI_Warning_Key_Empty)
+               ContinueLoop
+            EndIf
 
-			; Save new hotkeys to config ini file
-			IniWrite($CONFIG_INI, "Hotkeys", "HIDE_WINDOW", $sHK_HideWnd)
-			IniWrite($CONFIG_INI, "Hotkeys", "RESTORE_LAST_WINDOW", $sHK_RestoreLastWnd)
-			IniWrite($CONFIG_INI, "Hotkeys", "RESTORE_ALL_WINDOWS", $sHK_RestoreAllWnd)
+            ; Save new hotkeys to config ini file
+            IniWrite($CONFIG_INI, "Hotkeys", "HIDE_WINDOW", $sHK_HideWnd)
+            IniWrite($CONFIG_INI, "Hotkeys", "RESTORE_LAST_WINDOW", $sHK_RestoreLastWnd)
+            IniWrite($CONFIG_INI, "Hotkeys", "RESTORE_ALL_WINDOWS", $sHK_RestoreAllWnd)
 
-			$sLanguage = GUICtrlRead($hGUIConfigs_Language)
-			IniWrite($CONFIG_INI, "Extra", "LANGUAGE", $sLanguage)
+            $sLanguage = GUICtrlRead($hGUIConfigs_Language)
+            IniWrite($CONFIG_INI, "Extra", "LANGUAGE", $sLanguage)
 
-			; Update Tray Text for Restore All Windows
-			TrayItemSetText($hTrayRestoreAllWnd, $sTextId_GUI_Restore_All_Windows & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
+            ; Update Tray Text for Restore All Windows
+            TrayItemSetText($hTrayRestoreAllWnd, $sTextId_GUI_Restore_All_Windows & " (" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreAllWnd) & ")")
 
-			; Reinitialize UI Language
-			InitializeLanguage()
-			InitializeTray()
-			InitializeGUIs()
+            ; Reinitialize UI Language
+            InitializeLanguage()
+            InitializeTray()
+            InitializeGUIs()
 
-			ExitLoop
-		 Case $hGUIConfigs_Btn_Default
-			_GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_HideWnd, $DEFAULT_HIDE_WND_HK)
-			_GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreLastWnd, $DEFAULT_RESTORE_LAST_WND_HK)
-			_GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreAllWnd, $DEFAULT_RESTORE_ALL_WND_HK)
-	  EndSwitch
+            ExitLoop
+         Case $hGUIConfigs_Btn_Default
+            _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_HideWnd, $DEFAULT_HIDE_WND_HK)
+            _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreLastWnd, $DEFAULT_RESTORE_LAST_WND_HK)
+            _GUICtrlHotkey_SetHotkey($hGUIConfigs_HK_RestoreAllWnd, $DEFAULT_RESTORE_ALL_WND_HK)
+      EndSwitch
    WEnd
 
    ; Reenable hotkeys
@@ -322,9 +320,15 @@ Func ToggleOpt(ByRef $bFlag, ByRef $hTrayItem)
 
    Local $nTrayItemState = TrayItemGetState($hTrayItem)
    If BitAND($nTrayItemState, 1) Then ;//CHECKED
-	  TrayItemSetState($hTrayItem, 4)
-   ElseIf BitAND($nTrayItemState, 4) Then
-	  TrayItemSetState($hTrayItem, 1)
+      TrayItemSetState($hTrayItem, 4) ; Set to UNCHECKED
+   ElseIf BitAND($nTrayItemState, 4) Then ; UNCHECKED
+      TrayItemSetState($hTrayItem, 1) ; Set to CHECKED
+   Else ; Default / Initial state might not be CHECKED or UNCHECKED explicitly
+       If $bFlag Then
+           TrayItemSetState($hTrayItem, 1) ; Set to CHECKED
+       Else
+           TrayItemSetState($hTrayItem, 4) ; Set to UNCHECKED
+       EndIf
    EndIf
 
 EndFunc   ;==>ToggleOpt
@@ -333,7 +337,7 @@ EndFunc   ;==>ToggleOpt
 Func RestoreLastWnd()
    ;//Restore window from top of hidden windows stack.
    If UBound($aHiddenWndList) Then
-	  RestoreWnd($aHiddenWndList[UBound($aHiddenWndList) - 1])
+      RestoreWnd($aHiddenWndList[UBound($aHiddenWndList) - 1])
    EndIf
 EndFunc   ;==>RestoreLastWnd
 
@@ -346,25 +350,16 @@ Func RestoreWnd($hfWnd)
    Local $nIndex = _ArraySearch($aHiddenWndList, $hfWnd)
    WinSetState($hfWnd, "", @SW_SHOW)
    If $bRestoreFocus == True Then
-	  WinActivate($hfWnd)
+      WinActivate($hfWnd)
    EndIf
    If $nIndex >= 0 Then
-	  If $nIndex < UBound($aTrayItemHandles) Then
-		 TrayItemDelete($aTrayItemHandles[$nIndex])
-		 _ArrayDelete($aTrayItemHandles, $nIndex)
-	  EndIf
-	  If $nIndex < UBound($aHiddenWndList) Then
-		 _ArrayDelete($aHiddenWndList, $nIndex)
-	  EndIf
-
-	  If $bSaveLegacyWindows Then
-		 ;//Delete window's name from log file
-		 $sLog = FileRead("MTTlog.txt")
-		 $sLogN = StringReplace($sLog, WinGetTitle($hfWnd), "")
-		 $fd = FileOpen("MTTlog.txt", 2)
-		 FileWrite($fd, $sLogN)
-		 FileClose($fd)
-	  EndIf
+      If $nIndex < UBound($aTrayItemHandles) Then
+         TrayItemDelete($aTrayItemHandles[$nIndex])
+         _ArrayDelete($aTrayItemHandles, $nIndex)
+      EndIf
+      If $nIndex < UBound($aHiddenWndList) Then
+         _ArrayDelete($aHiddenWndList, $nIndex)
+      EndIf
    EndIf
    $SEMAPHORE = 1
 EndFunc   ;==>RestoreWnd
@@ -376,21 +371,20 @@ Func HideCurrentWnd()
 
     ; If there's no active window or we got the desktop/shell, don't proceed.
     If $hCurrentWndToHide = 0 Then Return
+    If _WinAPI_GetClassName($hCurrentWndToHide) == "Progman" Then Return
 
-    ; Check if the window can be minimized - optional, but closer to real minimize behavior
-    ; If Not BitAND(WinGetState($hCurrentWndToHide), 16) Then Return ; 16 = $WIN_STATE_MINIMIZED (check if minimizable) - Might prevent hiding some windows
+    If $bAltEscFocusChange Then
+        ; Send Alt+Esc. This typically shifts focus to the window
+        ; that would become active if the current one was minimized.
+        Send("!{ESC}")
 
-    ; Send Alt+Esc. This typically shifts focus to the window
-    ; that would become active if the current one was minimized.
-    Send("!{ESC}")
+        ; Give Windows a brief moment to process the Alt+Esc and change focus.
+        ; Adjust this value if needed (50-150ms is usually sufficient).
+        Sleep(100)
+    EndIf
 
-    ; Give Windows a brief moment to process the Alt+Esc and change focus.
-    ; Adjust this value if needed (50-150ms is usually sufficient).
-    Sleep(100)
-    ; === End Key Change ===
-
-    ; Now, hide the window we originally targeted (which should no longer be active).
-    ; We call HideWnd directly, passing the handle we saved earlier.
+    ; Now, hide the window we originally targeted (which may or may not still be active,
+    ; depending on the toggle setting).
     HideWnd($hCurrentWndToHide)
 
 EndFunc   ;==>HideCurrentWnd
@@ -402,7 +396,7 @@ Func HideWnd($hfWnd)
     EndIf
     $SEMAPHORE = 0
 
-    ; Just hide the window - focus was handled before calling this function.
+    ; Just hide the window.
     WinSetState($hfWnd, "", @SW_HIDE)
 
     _ArrayAdd($aHiddenWndList, $hfWnd)
@@ -415,9 +409,6 @@ Func HideWnd($hfWnd)
     _ArrayAdd($aTrayItemHandles, $hTrayWnd)
     $SEMAPHORE = 1
 
-    If $bSaveLegacyWindows Then
-        FileWrite("MTTlog.txt", $sTitle & @CRLF)
-    EndIf
     $hLastWnd = $hfWnd
 EndFunc   ;==>HideWnd
 
@@ -426,9 +417,8 @@ Func RestoreAllWnd()
    ;//Show all windows hidden during this session.
    Local $aTmp = $aHiddenWndList
    For $i = 0 To UBound($aTmp) - 1
-	  RestoreWnd($aTmp[$i])
+      RestoreWnd($aTmp[$i])
    Next
-   FileDelete("MTTlog.txt") ;//Lazy way to delete legacy window list in log file.
 EndFunc   ;==>RestoreAllWnd
 
 
@@ -439,54 +429,36 @@ EndFunc   ;==>CloseWnd
 
 Func HandleAltF4()
    If $bAltF4EndProcess = True Then
-	  CloseWnd()
+      CloseWnd()
    Else
-	  HotKeySet("!{f4}")
-	  Send("!{f4}")
-	  HotKeySet("!{f4}", "HandleAltF4")
+      HotKeySet("!{f4}")
+      Send("!{f4}")
+      HotKeySet("!{f4}", "HandleAltF4")
    EndIf
 EndFunc   ;==>HandleAltF4
-
-Func RestoreLastShutdownWindows()
-   ;//Legacy windows from last run are loaded on startup if available,
-   ;//this should only happen if MTT was unexpectedly closed while some windows were still hidden.
-   $aPrevWndTitleList = FileReadToArray("MTTlog.txt")
-   If Not @error Then
-	  For $i = 0 To UBound($aPrevWndTitleList) - 1
-		 If StringLen($aPrevWndTitleList[$i]) >= 1 Then
-			$hTrayWnd = TrayCreateItem($aPrevWndTitleList[$i] & " - Legacy", -1, 0) ;, $hTrayMenuShowSelectWnd)
-			_ArrayAdd($aTrayItemHandles, $hTrayWnd)
-			_ArrayAdd($aHiddenWndList, WinGetHandle($aPrevWndTitleList[$i]))
-		 EndIf
-	  Next
-
-	  If UBound($aTrayItemHandles) Then
-		 TrayTip("", "You have " & UBound($aTrayItemHandles) & " legacy Window(s) waiting to be restored!", 4)
-	  EndIf
-   EndIf
-EndFunc   ;==>RestoreLastShutdownWindows
 
 Func LoadTextFromLanguageJsonObj(ByRef $hJobj, $sKey)
    $sValue = Json_Get($hJobj, $sKey)
    If $sValue Then
-	  Return $sValue
+      Return $sValue
    Else
-	  Return "Language_Load_Error"
+      ; *** IMPROVED: Return a more informative error string ***
+      Return "LangKeyNotFound: " & $sKey
    EndIf
 EndFunc
 
 Func Help()
-   MsgBox(64, "MinimizeToTray " & $VERSION, $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
-		  & $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] " & $sTextId_Msg_Help_3_To_Restore & @CRLF _
-		  & $sTextId_Msg_Help_4_Stored_In_Tray & @CRLF _
-		  & $sTextId_Msg_Help_5_Elevated_Window_Admin & @CRLF & @CRLF _
-		  & "https://github.com/sandwichdoge/MinimizeToTray")
+   MsgBox(64, "MinimizeToTray", $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_HideWnd) & "] " & $sTextId_Msg_Help_2_To_Hide_Active & @CRLF _
+         & $sTextId_Msg_Help_1_Press & " [" & _GuiCtrlHotkey_NameFromAutoItHK($sHK_RestoreLastWnd) & "] " & $sTextId_Msg_Help_3_To_Restore & @CRLF _
+         & $sTextId_Msg_Help_4_Stored_In_Tray & @CRLF _
+         & $sTextId_Msg_Help_5_Elevated_Window_Admin & @CRLF & @CRLF _
+         & "https://github.com/sandwichdoge/MinimizeToTray")
 EndFunc   ;==>Help
 
 
 Func ExitS()
    If $bRestoreOnExit Then
-	 RestoreAllWnd()
+     RestoreAllWnd()
    EndIf
    Exit
 EndFunc   ;==>ExitS
@@ -494,17 +466,17 @@ EndFunc   ;==>ExitS
 
 Func TextToBool($txt)
    If StringLower($txt) == "true" Then
-	  Return True
+      Return True
    Else
-	  Return False
+      Return False
    EndIf
 EndFunc
 
 
 Func BoolToText($bool)
    If $bool Then
-	  Return "True"
+      Return "True"
    Else
-	  Return "False"
+      Return "False"
    EndIf
 EndFunc

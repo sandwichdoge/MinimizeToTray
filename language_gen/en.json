@@ -6,6 +6,7 @@
 "TextId_Tray_Opt_AltF4_Force_Exit_Desc" : "Alt-F4 forces window's process to exit",
 "TextId_Tray_Opt_Restore_On_Exit_Desc" : "Restore hidden windows on exit",
 "TextId_Tray_Opt_Save_Legacy_Windows_Desc" : "Save legacy windows",
+"TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc" : "Auto Alt+Esc for smooth focus on hide",
 "TextId_Tray_Opt_Restore_Focus" : "Return focus to restored windows",
 "TextId_Tray_Edit_Hotkeys" : "Configs",
 "TextId_Tray_Quick_Help" : "Quick Help",
