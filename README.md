@@ -18,7 +18,7 @@ Some processes may need MinimizeToTray to be run with Admin privileges to be hid
 
 **How to build and run from source:**
 1. Install AutoIt3.
-2. Use Aut2exe to build an executable file.
+2. Use Aut2exe on MinimizeToTray.au3 to build an executable file.
 3. Or simply run the script with AutoIt3.exe.
 
 https://www.softpedia.com/get/PORTABLE-SOFTWARE/System/System-Enhancements/Minimize-ToTray.shtml
