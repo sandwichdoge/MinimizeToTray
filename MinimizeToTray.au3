@@ -15,7 +15,7 @@
 #include "libs/Json.au3"
 #include "cmdline.au3"
 
-Global Const $VERSION = "2.4"
+Global Const $VERSION = ""
 Global Const $CONFIG_INI = "MTTconf.ini"
 
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
@@ -370,31 +370,56 @@ Func RestoreWnd($hfWnd)
 EndFunc   ;==>RestoreWnd
 
 
-Func HideWnd($hfWnd)
-   If $SEMAPHORE = 0 Then
-	  Return
-   EndIf
-   $SEMAPHORE = 0
-
-   WinSetState($hfWnd, "", @SW_HIDE) ;Traditional WinSetState
-   _ArrayAdd($aHiddenWndList, $hfWnd)
-
-   $hTrayWnd = TrayCreateItem(WinGetTitle($hfWnd), -1, 0) ;, $hTrayMenuShowSelectWnd)
-   _ArrayAdd($aTrayItemHandles, $hTrayWnd)
-   $SEMAPHORE = 1
-
-   ;//Write window's name to log file for legacy restoration in case of unexpected crash.
-   If $bSaveLegacyWindows Then
-	  FileWrite("MTTlog.txt", WinGetTitle($hfWnd) & @CRLF)
-   EndIf
-   $hLastWnd = $hfWnd
-EndFunc   ;==>HideWnd
-
-
 Func HideCurrentWnd()
-   ;//Hide currently active window.
-   HideWnd(WinGetHandle("[ACTIVE]"))
+    ; Get the handle of the window that is currently active.
+    Local $hCurrentWndToHide = WinGetHandle("[ACTIVE]")
+
+    ; If there's no active window or we got the desktop/shell, don't proceed.
+    If $hCurrentWndToHide = 0 Then Return
+
+    ; Check if the window can be minimized - optional, but closer to real minimize behavior
+    ; If Not BitAND(WinGetState($hCurrentWndToHide), 16) Then Return ; 16 = $WIN_STATE_MINIMIZED (check if minimizable) - Might prevent hiding some windows
+
+    ; Send Alt+Esc. This typically shifts focus to the window
+    ; that would become active if the current one was minimized.
+    Send("!{ESC}")
+
+    ; Give Windows a brief moment to process the Alt+Esc and change focus.
+    ; Adjust this value if needed (50-150ms is usually sufficient).
+    Sleep(100)
+    ; === End Key Change ===
+
+    ; Now, hide the window we originally targeted (which should no longer be active).
+    ; We call HideWnd directly, passing the handle we saved earlier.
+    HideWnd($hCurrentWndToHide)
+
 EndFunc   ;==>HideCurrentWnd
+
+
+Func HideWnd($hfWnd)
+    If $SEMAPHORE = 0 Then
+        Return
+    EndIf
+    $SEMAPHORE = 0
+
+    ; Just hide the window - focus was handled before calling this function.
+    WinSetState($hfWnd, "", @SW_HIDE)
+
+    _ArrayAdd($aHiddenWndList, $hfWnd)
+
+    Local $sTitle = WinGetTitle($hfWnd)
+    If @error Then $sTitle = "[Error Getting Title]"
+    If $sTitle = "" Then $sTitle = "[No Title]"
+
+    Local $hTrayWnd = TrayCreateItem($sTitle, -1, 0) ;, $hTrayMenuShowSelectWnd)
+    _ArrayAdd($aTrayItemHandles, $hTrayWnd)
+    $SEMAPHORE = 1
+
+    If $bSaveLegacyWindows Then
+        FileWrite("MTTlog.txt", $sTitle & @CRLF)
+    EndIf
+    $hLastWnd = $hfWnd
+EndFunc   ;==>HideWnd
 
 
 Func RestoreAllWnd()
