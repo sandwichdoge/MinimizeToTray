@@ -1,6 +1,11 @@
 # MinimizeToTray
 
-MinimizeToTray is a simple application for Windows. It helps reduce taskbar clutter by allowing you to minimize any open window directly to the system tray. Minimized windows can be easily restored whenever needed. No installation required.
+MinimizeToTray is a simple application for Windows. It helps reduce taskbar clutter by allowing you to minimize any open window directly to the system tray. Minimized windows can be easily restored whenever needed.
+
+No installation required.
+
+![image](https://github.com/user-attachments/assets/c2a1ae90-6998-461b-bd60-b6085a318c7d)
+
 
 **Basic Usage:**
 
