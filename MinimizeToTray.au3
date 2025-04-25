@@ -1,6 +1,6 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=MTT.ico
-#AutoIt3Wrapper_Outfile=MinimizeToTra2y.Exe
+#AutoIt3Wrapper_Outfile=MinimizeToTray.Exe
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ;//Minimize to tray
 ;//sandwichdoge@gmail.com
@@ -15,7 +15,7 @@
 #include "libs/Json.au3"
 #include "cmdline.au3"
 
-Global Const $VERSION = "2.6"
+Global Const $VERSION = "v2.6"
 Global Const $CONFIG_INI = "MTTconf.ini"
 
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
