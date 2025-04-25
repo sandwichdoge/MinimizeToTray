@@ -15,7 +15,7 @@
 #include "libs/Json.au3"
 #include "cmdline.au3"
 
-Global Const $VERSION = ""
+Global Const $VERSION = "2.6"
 Global Const $CONFIG_INI = "MTTconf.ini"
 
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
