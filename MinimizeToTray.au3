@@ -28,7 +28,6 @@ If CmdlineHasParams() Then
 	Exit
 EndIf
 
-
 Opt('TrayAutoPause', 0)
 Opt('TrayMenuMode', 3)
 
@@ -39,7 +38,6 @@ Global $nWindowStackSize = 0 ; Track actual number of windows in the stack
 Global $hMutex = _WinAPI_CreateMutex("MTT_Operation_Mutex")
 
 Main()
-
 
 ; Read ini config file, set current global hotkeys
 Func InitializeConfigs()
@@ -68,32 +66,64 @@ EndFunc   ;==>InitializeConfigs
 
 
 Func InitializeLanguage()
+	; Initialize with English defaults
+	Global $sTextId_Already_Running = "An instance of MinimizeToTray is already running."
+	Global $sTextId_Tray_Restore_All_Windows = "Restore all windows"
+	Global $sTextId_Tray_Extra = "Extra"
+	Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = "Alt-F4 forces window's process to exit"
+	Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = "Restore hidden windows on exit"
+	Global $sTextId_Tray_Opt_Restore_Focus = "Return focus to restored windows"
+	Global $sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc = "Auto Alt+Esc for smooth focus on hide"
+	Global $sTextId_Tray_Edit_Hotkeys = "Configs"
+	Global $sTextId_Tray_Quick_Help = "Quick Help"
+	Global $sTextId_Tray_Exit = "Exit"
+	Global $sTextId_GUI_Edit_Hotkeys = "Edit Hotkeys"
+	Global $sTextId_GUI_OK = "OK"
+	Global $sTextId_GUI_Default = "Default"
+	Global $sTextId_GUI_Hide_Active_Window = "Hide active window"
+	Global $sTextId_GUI_Restore_Last_Window = "Restore last window"
+	Global $sTextId_GUI_Restore_All_Windows = "Restore all hidden windows"
+	Global $sTextId_GUI_Warning_Key_Overlap = "ESC key and ALT-F4 cannot be selected because they will interfere with system hotkeys."
+	Global $sTextId_GUI_Warning_Key_Empty = "Hotkeys must not be empty."
+	Global $sTextId_GUI_Language = "Language"
+	Global $sTextId_Msg_Help_1_Press = "Press"
+	Global $sTextId_Msg_Help_2_To_Hide_Active = "to hide currently active Window."
+	Global $sTextId_Msg_Help_3_To_Restore = "to restore last hidden Window."
+	Global $sTextId_Msg_Help_4_Stored_In_Tray = "Hidden Windows are stored in MTT tray icon."
+	Global $sTextId_Msg_Help_5_Elevated_Window_Admin = "If the window you want to hide is elevated to administrative level, you must run MTT as Administrator."
+
+	; Try to load language file
 	Local $sLanguageFile = FileRead("language_gen\" & $sLanguage & ".json")
+	If @error Or $sLanguageFile = "" Then Return
+
 	Local $hJobj = Json_Decode($sLanguageFile)
-	Global $sTextId_Already_Running = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Already_Running"]')
-	Global $sTextId_Tray_Restore_All_Windows = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Restore_All_Windows"]')
-	Global $sTextId_Tray_Extra = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Extra"]')
-	Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_AltF4_Force_Exit_Desc"]')
-	Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_On_Exit_Desc"]')
-	Global $sTextId_Tray_Opt_Restore_Focus = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_Focus"]')
-	Global $sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc"]')
-	Global $sTextId_Tray_Edit_Hotkeys = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Edit_Hotkeys"]')
-	Global $sTextId_Tray_Quick_Help = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Quick_Help"]')
-	Global $sTextId_Tray_Exit = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Exit"]')
-	Global $sTextId_GUI_Edit_Hotkeys = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Edit_Hotkeys"]')
-	Global $sTextId_GUI_OK = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_OK"]')
-	Global $sTextId_GUI_Default = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Default"]')
-	Global $sTextId_GUI_Hide_Active_Window = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Hide_Active_Window"]')
-	Global $sTextId_GUI_Restore_Last_Window = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Restore_Last_Window"]')
-	Global $sTextId_GUI_Restore_All_Windows = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Restore_All_Windows"]')
-	Global $sTextId_GUI_Warning_Key_Overlap = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Warning_Key_Overlap"]')
-	Global $sTextId_GUI_Warning_Key_Empty = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Warning_Key_Empty"]')
-	Global $sTextId_GUI_Language = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Language"]')
-	Global $sTextId_Msg_Help_1_Press = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_1_Press"]')
-	Global $sTextId_Msg_Help_2_To_Hide_Active = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_2_To_Hide_Active"]')
-	Global $sTextId_Msg_Help_3_To_Restore = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_3_To_Restore"]')
-	Global $sTextId_Msg_Help_4_Stored_In_Tray = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_4_Stored_In_Tray"]')
-	Global $sTextId_Msg_Help_5_Elevated_Window_Admin = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_5_Elevated_Window_Admin"]')
+	If Not IsObj($hJobj) Then Return
+
+	; Load text strings from JSON, keeping defaults if loading fails
+	$sTextId_Already_Running = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Already_Running"]', $sTextId_Already_Running)
+	$sTextId_Tray_Restore_All_Windows = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Restore_All_Windows"]', $sTextId_Tray_Restore_All_Windows)
+	$sTextId_Tray_Extra = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Extra"]', $sTextId_Tray_Extra)
+	$sTextId_Tray_Opt_AltF4_Force_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_AltF4_Force_Exit_Desc"]', $sTextId_Tray_Opt_AltF4_Force_Exit_Desc)
+	$sTextId_Tray_Opt_Restore_On_Exit_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_On_Exit_Desc"]', $sTextId_Tray_Opt_Restore_On_Exit_Desc)
+	$sTextId_Tray_Opt_Restore_Focus = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Restore_Focus"]', $sTextId_Tray_Opt_Restore_Focus)
+	$sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc"]', $sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc)
+	$sTextId_Tray_Edit_Hotkeys = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Edit_Hotkeys"]', $sTextId_Tray_Edit_Hotkeys)
+	$sTextId_Tray_Quick_Help = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Quick_Help"]', $sTextId_Tray_Quick_Help)
+	$sTextId_Tray_Exit = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Tray_Exit"]', $sTextId_Tray_Exit)
+	$sTextId_GUI_Edit_Hotkeys = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Edit_Hotkeys"]', $sTextId_GUI_Edit_Hotkeys)
+	$sTextId_GUI_OK = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_OK"]', $sTextId_GUI_OK)
+	$sTextId_GUI_Default = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Default"]', $sTextId_GUI_Default)
+	$sTextId_GUI_Hide_Active_Window = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Hide_Active_Window"]', $sTextId_GUI_Hide_Active_Window)
+	$sTextId_GUI_Restore_Last_Window = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Restore_Last_Window"]', $sTextId_GUI_Restore_Last_Window)
+	$sTextId_GUI_Restore_All_Windows = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Restore_All_Windows"]', $sTextId_GUI_Restore_All_Windows)
+	$sTextId_GUI_Warning_Key_Overlap = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Warning_Key_Overlap"]', $sTextId_GUI_Warning_Key_Overlap)
+	$sTextId_GUI_Warning_Key_Empty = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Warning_Key_Empty"]', $sTextId_GUI_Warning_Key_Empty)
+	$sTextId_GUI_Language = LoadTextFromLanguageJsonObj($hJobj, '["TextId_GUI_Language"]', $sTextId_GUI_Language)
+	$sTextId_Msg_Help_1_Press = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_1_Press"]', $sTextId_Msg_Help_1_Press)
+	$sTextId_Msg_Help_2_To_Hide_Active = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_2_To_Hide_Active"]', $sTextId_Msg_Help_2_To_Hide_Active)
+	$sTextId_Msg_Help_3_To_Restore = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_3_To_Restore"]', $sTextId_Msg_Help_3_To_Restore)
+	$sTextId_Msg_Help_4_Stored_In_Tray = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_4_Stored_In_Tray"]', $sTextId_Msg_Help_4_Stored_In_Tray)
+	$sTextId_Msg_Help_5_Elevated_Window_Admin = LoadTextFromLanguageJsonObj($hJobj, '["TextId_Msg_Help_5_Elevated_Window_Admin"]', $sTextId_Msg_Help_5_Elevated_Window_Admin)
 EndFunc   ;==>InitializeLanguage
 
 
