@@ -1,9 +1,11 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=MTT.ico
 #AutoIt3Wrapper_Outfile=MinimizeToTray.Exe
-#AutoIt3Wrapper_UseUpx=y
 #AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Description=Minimize windows to system tray
+#AutoIt3Wrapper_Res_Fileversion=2.7.3.1
+#AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
+#AutoIt3Wrapper_Run_Tidy=y
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #include-once
@@ -16,7 +18,7 @@
 #include "libs/Json.au3"
 #include "cmdline.au3"
 
-Global Const $CONFIG_INI = "MTTconf.ini"
+Global Const $CONFIG_INI = @ScriptDir & "\MTTconf.ini"
 
 Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
 Global Const $DEFAULT_RESTORE_LAST_WND_HK = "!{f2}"
@@ -96,7 +98,7 @@ Func InitializeLanguage()
 	Global $sTextId_Msg_Help_3_To_Restore = LoadText($hJobj, "TextId_Msg_Help_3_To_Restore", "to restore last hidden Window.")
 	Global $sTextId_Msg_Help_4_Stored_In_Tray = LoadText($hJobj, "TextId_Msg_Help_4_Stored_In_Tray", "Hidden Windows are stored in MTT tray icon.")
 	Global $sTextId_Msg_Help_5_Elevated_Window_Admin = LoadText($hJobj, "TextId_Msg_Help_5_Elevated_Window_Admin", "If the window you want to hide is elevated to administrative level, you must run MTT as Administrator.")
-EndFunc
+EndFunc   ;==>InitializeLanguage
 
 Func LoadText($hJobj, $sKey, $sFallback)
 	If IsObj($hJobj) Then
@@ -104,7 +106,7 @@ Func LoadText($hJobj, $sKey, $sFallback)
 		If $sValue Then Return $sValue
 	EndIf
 	Return $sFallback
-EndFunc
+EndFunc   ;==>LoadText
 
 
 Func InitializeTray()
