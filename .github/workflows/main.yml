@@ -21,16 +21,23 @@ jobs:
         
       - name: Compile AutoIt3 script with icon
         run: |
-          & "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
+          $result = & "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
+          Write-Host "Compilation exit code: $LASTEXITCODE"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Compilation failed with exit code $LASTEXITCODE"
+            exit 1
+          }
       
       - name: Verify compiled file
         run: |
           if (Test-Path "MinimizeToTray.exe") {
-            Write-Host "MinimizeToTray.exe found"
-            Get-ChildItem -Path . -Filter *.exe
+            Write-Host "✓ MinimizeToTray.exe found"
+            Get-Item "MinimizeToTray.exe" | Format-List
           } else {
-            Write-Host "MinimizeToTray.exe not found!"
-            Get-ChildItem -Path . -Recurse -Filter *.exe
+            Write-Error "✗ MinimizeToTray.exe not found!"
+            Write-Host "Listing all files in current directory:"
+            Get-ChildItem -Recurse
+            exit 1
           }
       
       - name: Upload compiled executable and language files
