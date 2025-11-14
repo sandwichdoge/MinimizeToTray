@@ -14,20 +14,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Download AutoIt3
+      - name: Download and Install AutoIt3
         run: |
           Invoke-WebRequest -Uri "https://www.autoitscript.com/cgi-bin/getfile.pl?autoit3/autoit-v3-setup.exe" -OutFile "autoit-setup.exe"
+          Write-Host "Starting AutoIt silent install..."
           Start-Process -FilePath "autoit-setup.exe" -ArgumentList "/S" -Wait
-        
-      - name: Compile AutoIt3 script with icon
+          Write-Host "AutoIt install finished. Giving it a moment to settle..."
+          Start-Sleep -Seconds 5 # Give a few seconds for file system to be ready
+          
+      - name: Verify AutoIt Installation
         run: |
-          $result = & "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
-          Write-Host "Compilation exit code: $LASTEXITCODE"
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Compilation failed with exit code $LASTEXITCODE"
+          $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
+          if (-not (Test-Path $compiler_path)) {
+            Write-Error "Compiler not found at '$compiler_path'!"
+            Write-Host "Searching for 'Aut2exe.exe' in Program Files..."
+            Get-ChildItem -Path "C:\Program Files", "C:\Program Files (x86)" -Filter "Aut2exe.exe" -Recurse -ErrorAction SilentlyContinue | Format-List Directory, FullName
             exit 1
           }
-      
+          Write-Host "✓ AutoIt Compiler found at $compiler_path"
+          
+      - name: Compile AutoIt3 script with icon
+        run: |
+          $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
+          # Put arguments in quotes for Start-Process
+          $params = "/in `"MinimizeToTray.au3`" /out `"MinimizeToTray.exe`" /nopack /icon `"MTT.ico`"
+          
+          Write-Host "Running: $compiler_path $params"
+          
+          # Use Start-Process for a more robust execution and exit code capture
+          $process = Start-Process -FilePath $compiler_path -ArgumentList $params -Wait -PassThru -ErrorAction Stop
+          
+          $exitCode = $process.ExitCode
+          Write-Host "Compilation exit code: $exitCode"
+          
+          if ($exitCode -ne 0) {
+            Write-Error "Compilation failed with exit code $exitCode"
+            exit 1
+          }
+          
       - name: Verify compiled file
         run: |
           if (Test-Path "MinimizeToTray.exe") {
@@ -39,7 +63,7 @@ jobs:
             Get-ChildItem -Recurse
             exit 1
           }
-      
+          
       - name: Upload compiled executable and language files
         uses: actions/upload-artifact@v4
         with:
