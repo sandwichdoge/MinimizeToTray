@@ -36,8 +36,9 @@ jobs:
       - name: Compile AutoIt3 script with icon
         run: |
           $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
-          # Put arguments in quotes for Start-Process
-          $params = "/in `"MinimizeToTray.au3`" /out `"MinimizeToTray.exe`" /nopack /icon `"MTT.ico`"
+          
+          # Use single quotes for the main string to avoid escaping inner double quotes
+          $params = '/in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"'
           
           Write-Host "Running: $compiler_path $params"
           
@@ -51,7 +52,7 @@ jobs:
             Write-Error "Compilation failed with exit code $exitCode"
             exit 1
           }
-          
+    
       - name: Verify compiled file
         run: |
           if (Test-Path "MinimizeToTray.exe") {
