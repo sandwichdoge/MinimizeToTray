@@ -23,10 +23,20 @@ jobs:
         run: |
           & "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
       
+      - name: Verify compiled file
+        run: |
+          if (Test-Path "MinimizeToTray.exe") {
+            Write-Host "MinimizeToTray.exe found"
+            Get-ChildItem -Path . -Filter *.exe
+          } else {
+            Write-Host "MinimizeToTray.exe not found!"
+            Get-ChildItem -Path . -Recurse -Filter *.exe
+          }
+      
       - name: Upload compiled executable and language files
         uses: actions/upload-artifact@v4
         with:
           name: MinimizeToTray
           path: |
             MinimizeToTray.exe
-            language_gen/
+            language_gen/**
