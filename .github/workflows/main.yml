@@ -1,0 +1,32 @@
+name: Build AutoIt3
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download AutoIt3
+        run: |
+          Invoke-WebRequest -Uri "https://www.autoitscript.com/cgi-bin/getfile.pl?autoit3/autoit-v3-setup.exe" -OutFile "autoit-setup.exe"
+          Start-Process -FilePath "autoit-setup.exe" -ArgumentList "/S" -Wait
+        
+      - name: Compile AutoIt3 script with icon
+        run: |
+          & "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
+      
+      - name: Upload compiled executable and language files
+        uses: actions/upload-artifact@v4
+        with:
+          name: MinimizeToTray
+          path: |
+            MinimizeToTray.exe
+            language_gen/
