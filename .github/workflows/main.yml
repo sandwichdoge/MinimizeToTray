@@ -40,7 +40,7 @@ jobs:
 
 
       - name: Compile AutoIt3 script with icon
-        timeout-minutes: 5
+        timeout-minutes: 3
         run: |
           $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
           
@@ -50,36 +50,41 @@ jobs:
             exit 1
           }
           
-          # Verify input files exist
-          if (-not (Test-Path "MinimizeToTray.au3")) {
-            Write-Error "Source file MinimizeToTray.au3 not found"
-            Get-ChildItem
-            exit 1
-          }
-          
-          if (-not (Test-Path "MTT.ico")) {
-            Write-Error "Icon file MTT.ico not found"
-            Get-ChildItem
-            exit 1
-          }
-          
           Write-Host "Running compilation..."
           Write-Host "Current directory: $(Get-Location)"
           
-          # Try to capture any output
-          $output = & "$compiler_path" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico" 2>&1
-          $exitCode = $LASTEXITCODE
+          # Create temp files for output
+          $stdoutFile = New-TemporaryFile
+          $stderrFile = New-TemporaryFile
           
-          Write-Host "Exit code: $exitCode"
-          Write-Host "Output: $output"
-          
-          if ($exitCode -ne 0) {
-            Write-Error "Compilation failed with exit code $exitCode"
-            Write-Host "Full output: $output"
-            exit 1
+          try {
+            $process = Start-Process -FilePath $compiler_path `
+              -ArgumentList '/in', 'MinimizeToTray.au3', '/out', 'MinimizeToTray.exe', '/nopack', '/icon', 'MTT.ico' `
+              -NoNewWindow `
+              -Wait `
+              -PassThru `
+              -RedirectStandardOutput $stdoutFile.FullName `
+              -RedirectStandardError $stderrFile.FullName
+            
+            $exitCode = $process.ExitCode
+            $stdout = Get-Content $stdoutFile.FullName -Raw
+            $stderr = Get-Content $stderrFile.FullName -Raw
+            
+            Write-Host "Exit code: $exitCode"
+            Write-Host "STDOUT: $stdout"
+            Write-Host "STDERR: $stderr"
+            
+            if ($exitCode -ne 0) {
+              Write-Error "Compilation failed with exit code $exitCode"
+              exit 1
+            }
+            
+            Write-Host "✓ Compilation completed successfully"
+            
+          } finally {
+            Remove-Item $stdoutFile.FullName -ErrorAction SilentlyContinue
+            Remove-Item $stderrFile.FullName -ErrorAction SilentlyContinue
           }
-          
-          Write-Host "✓ Compilation completed successfully"
       
       - name: Verify compiled file
         run: |
