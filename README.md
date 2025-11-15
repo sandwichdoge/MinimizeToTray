@@ -4,7 +4,7 @@ MinimizeToTray is a simple application for Windows. It helps reduce taskbar clut
 
 No installation required.
 
-![minimizetotray](https://github.com/user-attachments/assets/49a39fa8-5c88-4d23-b669-323e38a9e6e2)
+![demo](https://github.com/user-attachments/assets/268c9530-cdc5-4f09-bae1-5f50d00c83c1)
 
 
 **Basic Usage:**
@@ -16,11 +16,12 @@ No installation required.
 
 Some processes may need MinimizeToTray to be run with Admin privileges to be hidden.
 
+**Download:**
+https://github.com/sandwichdoge/MinimizeToTray/releases/
+
 **How to build and run from source:**
 1. Install AutoIt3.
 2. Use Aut2exe on MinimizeToTray.au3 to build an executable file.
 3. Or simply run the script with AutoIt3.exe.
 
 https://www.softpedia.com/get/PORTABLE-SOFTWARE/System/System-Enhancements/Minimize-ToTray.shtml
-
-Download: https://github.com/sandwichdoge/MinimizeToTray/releases/
