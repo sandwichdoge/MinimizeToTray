@@ -37,22 +37,17 @@ jobs:
         run: |
           $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
           
-          # Use single quotes for the main string to avoid escaping inner double quotes
-          $params = '/in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"'
+          Write-Host "Running compilation..."
           
-          Write-Host "Running: $compiler_path $params"
+          & $compiler_path /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
           
-          # Use Start-Process for a more robust execution and exit code capture
-          $process = Start-Process -FilePath $compiler_path -ArgumentList $params -Wait -PassThru -ErrorAction Stop
-          
-          $exitCode = $process.ExitCode
-          Write-Host "Compilation exit code: $exitCode"
-          
-          if ($exitCode -ne 0) {
-            Write-Error "Compilation failed with exit code $exitCode"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Compilation failed with exit code $LASTEXITCODE"
             exit 1
           }
-    
+          
+          Write-Host "✓ Compilation completed"
+      
       - name: Verify compiled file
         run: |
           if (Test-Path "MinimizeToTray.exe") {
