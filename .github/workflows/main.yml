@@ -37,16 +37,20 @@ jobs:
         run: |
           $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
           
-          Write-Host "Running compilation..."
+          $params = '/in', "MinimizeToTray.au3", '/out', "MinimizeToTray.exe", '/nopack', '/icon', "MTT.ico"
           
-          & $compiler_path /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
+          Write-Host "Running: $compiler_path $params"
           
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Compilation failed with exit code $LASTEXITCODE"
+          # Use -NoNewWindow and pass params as array
+          $process = Start-Process -FilePath $compiler_path -ArgumentList $params -Wait -PassThru -NoNewWindow -ErrorAction Stop
+          
+          $exitCode = $process.ExitCode
+          Write-Host "Compilation exit code: $exitCode"
+          
+          if ($exitCode -ne 0) {
+            Write-Error "Compilation failed with exit code $exitCode"
             exit 1
           }
-          
-          Write-Host "✓ Compilation completed"
       
       - name: Verify compiled file
         run: |
