@@ -34,23 +34,20 @@ jobs:
           Write-Host "✓ AutoIt Compiler found at $compiler_path"
           
       - name: Compile AutoIt3 script with icon
+        timeout-minutes: 5
         run: |
           $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
           
-          $params = '/in', "MinimizeToTray.au3", '/out', "MinimizeToTray.exe", '/nopack', '/icon', "MTT.ico"
+          Write-Host "Running compilation..."
           
-          Write-Host "Running: $compiler_path $params"
+          & "$compiler_path" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
           
-          # Use -NoNewWindow and pass params as array
-          $process = Start-Process -FilePath $compiler_path -ArgumentList $params -PassThru -NoNewWindow -ErrorAction Stop
-          
-          $exitCode = $process.ExitCode
-          Write-Host "Compilation exit code: $exitCode"
-          
-          if ($exitCode -ne 0) {
-            Write-Error "Compilation failed with exit code $exitCode"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Compilation failed with exit code $LASTEXITCODE"
             exit 1
           }
+          
+          Write-Host "✓ Compilation completed with exit code: $LASTEXITCODE"
       
       - name: Verify compiled file
         run: |
