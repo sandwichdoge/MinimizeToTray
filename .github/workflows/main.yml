@@ -42,7 +42,7 @@ jobs:
           Write-Host "Running: $compiler_path $params"
           
           # Use -NoNewWindow and pass params as array
-          $process = Start-Process -FilePath $compiler_path -ArgumentList $params -Wait -PassThru -NoNewWindow -ErrorAction Stop
+          $process = Start-Process -FilePath $compiler_path -ArgumentList $params -PassThru -NoNewWindow -ErrorAction Stop
           
           $exitCode = $process.ExitCode
           Write-Host "Compilation exit code: $exitCode"
