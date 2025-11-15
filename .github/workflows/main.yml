@@ -32,7 +32,13 @@ jobs:
             exit 1
           }
           Write-Host "✓ AutoIt Compiler found at $compiler_path"
-          
+
+      - name: Disable Windows Defender
+        run: |
+          Set-MpPreference -DisableRealtimeMonitoring $true
+          Write-Host "Windows Defender real-time monitoring disabled"
+
+
       - name: Compile AutoIt3 script with icon
         timeout-minutes: 5
         run: |
