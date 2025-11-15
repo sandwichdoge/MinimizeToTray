@@ -8,6 +8,7 @@
 "TextId_Tray_Opt_Save_Legacy_Windows_Desc" : "従来のウィンドウを保存",
 "TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc" : "非表示時にフォーカスを変更するには、Alt + Esc キーを押す",
 "TextId_Tray_Opt_Restore_Focus" : "復元されたウィンドウにフォーカスを戻す",
+"TextId_Tray_Opt_Auto_Start_Desc": "Windows起動時にMinimizeToTrayを開始",
 "TextId_Tray_Edit_Hotkeys" : "設定",
 "TextId_Tray_Quick_Help" : "クイックヘルプ",
 "TextId_Tray_Exit" : "終了",

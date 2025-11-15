@@ -8,6 +8,7 @@
 "TextId_Tray_Opt_Save_Legacy_Windows_Desc" : "Legacy-Fenster speichern",
 "TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc": "Automatisches Alt+Esc für Fokuswechsel beim Verstecken",
 "TextId_Tray_Opt_Restore_Focus" : "Fokus auf wiederhergestellte Fenster zurücksetzen",
+"TextId_Tray_Opt_Auto_Start_Desc": "MinimizeToTray beim Windows-Start ausführen",
 "TextId_Tray_Edit_Hotkeys" : "Konfigurationen",
 "TextId_Tray_Quick_Help" : "Schnelle Hilfe",
 "TextId_Tray_Exit" : "Verlassen",

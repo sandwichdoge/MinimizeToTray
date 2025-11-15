@@ -24,6 +24,10 @@ Global Const $DEFAULT_HIDE_WND_HK = "!{f1}"
 Global Const $DEFAULT_RESTORE_LAST_WND_HK = "!{f2}"
 Global Const $DEFAULT_RESTORE_ALL_WND_HK = "{f10}"
 
+Global Const $STARTUP_FOLDER = @StartupDir
+Global Const $STARTUP_LINK_NAME = "MinimizeToTray.lnk"
+Global Const $STARTUP_LINK_PATH = $STARTUP_FOLDER & "\" & $STARTUP_LINK_NAME
+
 If CmdlineHasParams() Then
 	;//Cmdline mode does not care about tray and GUI whatsoever.
 	CmdlineRunCliMode()
@@ -58,6 +62,8 @@ Func InitializeConfigs()
 	Global $bRestoreOnExit = TextToBool($sRestoreAllWndsOnExit)
 	Global $bRestoreFocus = TextToBool($sRestoreFocus)
 	Global $bAltEscFocusChange = TextToBool($sAltEscFocusChange)
+	Global $sAutoStartEnabled = IniRead($CONFIG_INI, "Extra", "AUTO_START_ON_BOOT", "False")
+	Global $bAutoStartEnabled = TextToBool($sAutoStartEnabled)
 
 	Global $sLanguage = IniRead($CONFIG_INI, "Extra", "LANGUAGE", "en")
 
@@ -70,34 +76,35 @@ EndFunc   ;==>InitializeConfigs
 
 
 Func InitializeLanguage()
-    Local $hJobj = False
-    Local $sLanguageFile = FileRead(@ScriptDir & "\language_gen\" & $sLanguage & ".json")
-    If $sLanguageFile Then $hJobj = Json_Decode($sLanguageFile)
+	Local $hJobj = False
+	Local $sLanguageFile = FileRead(@ScriptDir & "\language_gen\" & $sLanguage & ".json")
+	If $sLanguageFile Then $hJobj = Json_Decode($sLanguageFile)
 
-    Global $sTextId_Already_Running = LoadText($hJobj, "TextId_Already_Running", "An instance of MinimizeToTray is already running.")
-    Global $sTextId_Tray_Restore_All_Windows = LoadText($hJobj, "TextId_Tray_Restore_All_Windows", "Restore all windows")
-    Global $sTextId_Tray_Extra = LoadText($hJobj, "TextId_Tray_Extra", "Extra")
-    Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = LoadText($hJobj, "TextId_Tray_Opt_AltF4_Force_Exit_Desc", "Alt-F4 forces window's process to exit")
-    Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = LoadText($hJobj, "TextId_Tray_Opt_Restore_On_Exit_Desc", "Restore hidden windows on exit")
-    Global $sTextId_Tray_Opt_Restore_Focus = LoadText($hJobj, "TextId_Tray_Opt_Restore_Focus", "Return focus to restored windows")
-    Global $sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc = LoadText($hJobj, "TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc", "Auto Alt+Esc for smooth focus on hide")
-    Global $sTextId_Tray_Edit_Hotkeys = LoadText($hJobj, "TextId_Tray_Edit_Hotkeys", "Configs")
-    Global $sTextId_Tray_Quick_Help = LoadText($hJobj, "TextId_Tray_Quick_Help", "Quick Help")
-    Global $sTextId_Tray_Exit = LoadText($hJobj, "TextId_Tray_Exit", "Exit")
-    Global $sTextId_GUI_Edit_Hotkeys = LoadText($hJobj, "TextId_GUI_Edit_Hotkeys", "Edit Hotkeys")
-    Global $sTextId_GUI_OK = LoadText($hJobj, "TextId_GUI_OK", "OK")
-    Global $sTextId_GUI_Default = LoadText($hJobj, "TextId_GUI_Default", "Default")
-    Global $sTextId_GUI_Hide_Active_Window = LoadText($hJobj, "TextId_GUI_Hide_Active_Window", "Hide active window")
-    Global $sTextId_GUI_Restore_Last_Window = LoadText($hJobj, "TextId_GUI_Restore_Last_Window", "Restore last window")
-    Global $sTextId_GUI_Restore_All_Windows = LoadText($hJobj, "TextId_GUI_Restore_All_Windows", "Restore all hidden windows")
-    Global $sTextId_GUI_Warning_Key_Overlap = LoadText($hJobj, "TextId_GUI_Warning_Key_Overlap", "ESC key and ALT-F4 cannot be selected because they will interfere with system hotkeys.")
-    Global $sTextId_GUI_Warning_Key_Empty = LoadText($hJobj, "TextId_GUI_Warning_Key_Empty", "Hotkeys must not be empty.")
-    Global $sTextId_GUI_Language = LoadText($hJobj, "TextId_GUI_Language", "Language")
-    Global $sTextId_Msg_Help_1_Press = LoadText($hJobj, "TextId_Msg_Help_1_Press", "Press")
-    Global $sTextId_Msg_Help_2_To_Hide_Active = LoadText($hJobj, "TextId_Msg_Help_2_To_Hide_Active", "to hide currently active Window.")
-    Global $sTextId_Msg_Help_3_To_Restore = LoadText($hJobj, "TextId_Msg_Help_3_To_Restore", "to restore last hidden Window.")
-    Global $sTextId_Msg_Help_4_Stored_In_Tray = LoadText($hJobj, "TextId_Msg_Help_4_Stored_In_Tray", "Hidden Windows are stored in MTT tray icon.")
-    Global $sTextId_Msg_Help_5_Elevated_Window_Admin = LoadText($hJobj, "TextId_Msg_Help_5_Elevated_Window_Admin", "If the window you want to hide is elevated to administrative level, you must run MTT as Administrator.")
+	Global $sTextId_Already_Running = LoadText($hJobj, "TextId_Already_Running", "An instance of MinimizeToTray is already running.")
+	Global $sTextId_Tray_Restore_All_Windows = LoadText($hJobj, "TextId_Tray_Restore_All_Windows", "Restore all windows")
+	Global $sTextId_Tray_Extra = LoadText($hJobj, "TextId_Tray_Extra", "Extra")
+	Global $sTextId_Tray_Opt_AltF4_Force_Exit_Desc = LoadText($hJobj, "TextId_Tray_Opt_AltF4_Force_Exit_Desc", "Alt-F4 forces window's process to exit")
+	Global $sTextId_Tray_Opt_Restore_On_Exit_Desc = LoadText($hJobj, "TextId_Tray_Opt_Restore_On_Exit_Desc", "Restore hidden windows on exit")
+	Global $sTextId_Tray_Opt_Restore_Focus = LoadText($hJobj, "TextId_Tray_Opt_Restore_Focus", "Return focus to restored windows")
+	Global $sTextId_Tray_Opt_Alt_Esc_Focus_Change_Desc = LoadText($hJobj, "TextId_Tray_Opt_Alt_Esc_Focus_Change_Desc", "Auto Alt+Esc for smooth focus on hide")
+	Global $sTextId_Tray_Opt_Auto_Start_Desc = LoadText($hJobj, "TextId_Tray_Opt_Auto_Start_Desc", "Start MinimizeToTray on Windows boot")
+	Global $sTextId_Tray_Edit_Hotkeys = LoadText($hJobj, "TextId_Tray_Edit_Hotkeys", "Configs")
+	Global $sTextId_Tray_Quick_Help = LoadText($hJobj, "TextId_Tray_Quick_Help", "Quick Help")
+	Global $sTextId_Tray_Exit = LoadText($hJobj, "TextId_Tray_Exit", "Exit")
+	Global $sTextId_GUI_Edit_Hotkeys = LoadText($hJobj, "TextId_GUI_Edit_Hotkeys", "Edit Hotkeys")
+	Global $sTextId_GUI_OK = LoadText($hJobj, "TextId_GUI_OK", "OK")
+	Global $sTextId_GUI_Default = LoadText($hJobj, "TextId_GUI_Default", "Default")
+	Global $sTextId_GUI_Hide_Active_Window = LoadText($hJobj, "TextId_GUI_Hide_Active_Window", "Hide active window")
+	Global $sTextId_GUI_Restore_Last_Window = LoadText($hJobj, "TextId_GUI_Restore_Last_Window", "Restore last window")
+	Global $sTextId_GUI_Restore_All_Windows = LoadText($hJobj, "TextId_GUI_Restore_All_Windows", "Restore all hidden windows")
+	Global $sTextId_GUI_Warning_Key_Overlap = LoadText($hJobj, "TextId_GUI_Warning_Key_Overlap", "ESC key and ALT-F4 cannot be selected because they will interfere with system hotkeys.")
+	Global $sTextId_GUI_Warning_Key_Empty = LoadText($hJobj, "TextId_GUI_Warning_Key_Empty", "Hotkeys must not be empty.")
+	Global $sTextId_GUI_Language = LoadText($hJobj, "TextId_GUI_Language", "Language")
+	Global $sTextId_Msg_Help_1_Press = LoadText($hJobj, "TextId_Msg_Help_1_Press", "Press")
+	Global $sTextId_Msg_Help_2_To_Hide_Active = LoadText($hJobj, "TextId_Msg_Help_2_To_Hide_Active", "to hide currently active Window.")
+	Global $sTextId_Msg_Help_3_To_Restore = LoadText($hJobj, "TextId_Msg_Help_3_To_Restore", "to restore last hidden Window.")
+	Global $sTextId_Msg_Help_4_Stored_In_Tray = LoadText($hJobj, "TextId_Msg_Help_4_Stored_In_Tray", "Hidden Windows are stored in MTT tray icon.")
+	Global $sTextId_Msg_Help_5_Elevated_Window_Admin = LoadText($hJobj, "TextId_Msg_Help_5_Elevated_Window_Admin", "If the window you want to hide is elevated to administrative level, you must run MTT as Administrator.")
 EndFunc   ;==>InitializeLanguage
 
 Func LoadText($hJobj, $sKey, $sFallback)
@@ -127,6 +134,8 @@ Func InitializeTray()
 	$hTrayLine1 = TrayCreateItem("") ; Create a straight line
 
 	$hTrayOpt = TrayCreateMenu($sTextId_Tray_Extra)
+	Global $hTrayAutoStartEnabled = TrayCreateItem($sTextId_Tray_Opt_Auto_Start_Desc, $hTrayOpt)
+	TrayItemSetState($hTrayAutoStartEnabled, $bAutoStartEnabled)
 	Global $hTrayAltF4EndProcess = TrayCreateItem($sTextId_Tray_Opt_AltF4_Force_Exit_Desc, $hTrayOpt)
 	TrayItemSetState($hTrayAltF4EndProcess, $bAltF4EndProcess)
 	Global $hTrayRestoreOnExit = TrayCreateItem($sTextId_Tray_Opt_Restore_On_Exit_Desc, $hTrayOpt)
@@ -212,6 +221,10 @@ EndFunc   ;==>InitializeGUIs
 Func HandleTrayEvents()
 	$hTrayMsg = TrayGetMsg()
 	Switch $hTrayMsg
+		Case $hTrayAutoStartEnabled
+			ToggleOpt($bAutoStartEnabled, $hTrayAutoStartEnabled)
+			IniWrite($CONFIG_INI, "Extra", "AUTO_START_ON_BOOT", BoolToText($bAutoStartEnabled))
+			ApplyAutoStartSetting($bAutoStartEnabled)
 		Case $hTrayAltF4EndProcess
 			ToggleOpt($bAltF4EndProcess, $hTrayAltF4EndProcess)
 			IniWrite($CONFIG_INI, "Extra", "ALT_F4_FORCE_END_PROCESS", BoolToText($bAltF4EndProcess))
@@ -606,6 +619,60 @@ Func HideWnd($hfWnd)
 	; Release mutex
 	_WinAPI_ReleaseMutex($hMutex)
 EndFunc   ;==>HideWnd
+
+
+Func ApplyAutoStartSetting($bEnable)
+	If $bEnable Then
+		CreateStartupShortcut()
+	Else
+		RemoveStartupShortcut()
+	EndIf
+EndFunc   ;==>ApplyAutoStartSetting
+
+
+; Creates a shortcut in the Windows Startup folder
+Func CreateStartupShortcut()
+	Local $sTargetPath = @ScriptFullPath
+
+	; Use COM object to create shortcut (works for both compiled .exe and .au3)
+	Local $oShellLink = ObjCreate("WScript.Shell")
+	If Not IsObj($oShellLink) Then
+		ConsoleWrite("!> Error: Could not create WScript.Shell object for shortcut creation." & @CRLF)
+		Return False
+	EndIf
+
+	Local $oShortcut = $oShellLink.CreateShortcut($STARTUP_LINK_PATH)
+	If Not IsObj($oShortcut) Then
+		ConsoleWrite("!> Error: Could not create shortcut object." & @CRLF)
+		Return False
+	EndIf
+
+	$oShortcut.TargetPath = $sTargetPath
+	$oShortcut.WorkingDirectory = @ScriptDir
+	$oShortcut.Description = "MinimizeToTray - Minimize windows to system tray"
+	$oShortcut.Save()
+
+	If @error Then
+		ConsoleWrite("!> Error: Failed to save startup shortcut." & @CRLF)
+		Return False
+	EndIf
+
+	ConsoleWrite("*> Info: Startup shortcut created successfully." & @CRLF)
+	Return True
+EndFunc   ;==>CreateStartupShortcut
+
+
+Func RemoveStartupShortcut()
+	If FileExists($STARTUP_LINK_PATH) Then
+		FileDelete($STARTUP_LINK_PATH)
+		If @error Then
+			ConsoleWrite("!> Warning: Could not delete startup shortcut." & @CRLF)
+			Return False
+		EndIf
+		ConsoleWrite("*> Info: Startup shortcut removed successfully." & @CRLF)
+	EndIf
+	Return True
+EndFunc   ;==>RemoveStartupShortcut
 
 
 Func Main()
