@@ -40,7 +40,7 @@ jobs:
           
           Write-Host "Running compilation..."
           
-          & "$compiler_path" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
+          & "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
           
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Compilation failed with exit code $LASTEXITCODE"
