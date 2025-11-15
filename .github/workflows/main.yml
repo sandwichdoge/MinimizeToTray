@@ -40,7 +40,7 @@ jobs:
 
 
       - name: Compile AutoIt3 script with icon
-        timeout-minutes: 3
+        timeout-minutes: 5
         run: |
           $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
           
@@ -53,6 +53,10 @@ jobs:
           Write-Host "Running compilation..."
           Write-Host "Current directory: $(Get-Location)"
           
+          # List files to confirm they exist
+          Write-Host "Files in directory:"
+          Get-ChildItem | Format-Table Name
+          
           # Create temp files for output
           $stdoutFile = New-TemporaryFile
           $stderrFile = New-TemporaryFile
@@ -61,14 +65,33 @@ jobs:
             $process = Start-Process -FilePath $compiler_path `
               -ArgumentList '/in', 'MinimizeToTray.au3', '/out', 'MinimizeToTray.exe', '/nopack', '/icon', 'MTT.ico' `
               -NoNewWindow `
-              -Wait `
               -PassThru `
               -RedirectStandardOutput $stdoutFile.FullName `
               -RedirectStandardError $stderrFile.FullName
             
+            Write-Host "Process started with PID: $($process.Id)"
+            
+            # Wait with timeout
+            $timeout = 60 # seconds
+            $elapsed = 0
+            while (-not $process.HasExited -and $elapsed -lt $timeout) {
+              Start-Sleep -Seconds 1
+              $elapsed++
+              if ($elapsed % 5 -eq 0) {
+                Write-Host "Still running... ($elapsed seconds)"
+              }
+            }
+            
+            if (-not $process.HasExited) {
+              Write-Host "Process timed out after $timeout seconds. Killing process..."
+              $process.Kill()
+              Write-Error "Compilation timed out"
+              exit 1
+            }
+            
             $exitCode = $process.ExitCode
-            $stdout = Get-Content $stdoutFile.FullName -Raw
-            $stderr = Get-Content $stderrFile.FullName -Raw
+            $stdout = Get-Content $stdoutFile.FullName -Raw -ErrorAction SilentlyContinue
+            $stderr = Get-Content $stderrFile.FullName -Raw -ErrorAction SilentlyContinue
             
             Write-Host "Exit code: $exitCode"
             Write-Host "STDOUT: $stdout"
