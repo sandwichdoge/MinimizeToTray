@@ -4,7 +4,7 @@ MinimizeToTray is a simple application for Windows. It helps reduce taskbar clut
 
 No installation required.
 
-![image](https://github.com/user-attachments/assets/c2a1ae90-6998-461b-bd60-b6085a318c7d)
+![minimizetotray](https://github.com/user-attachments/assets/49a39fa8-5c88-4d23-b669-323e38a9e6e2)
 
 
 **Basic Usage:**
