@@ -44,16 +44,42 @@ jobs:
         run: |
           $compiler_path = "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe"
           
-          Write-Host "Running compilation..."
-          
-          & "C:\Program Files (x86)\AutoIt3\Aut2Exe\Aut2exe.exe" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico"
-          
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Compilation failed with exit code $LASTEXITCODE"
+          # Verify compiler exists
+          if (-not (Test-Path $compiler_path)) {
+            Write-Error "Compiler not found at: $compiler_path"
             exit 1
           }
           
-          Write-Host "✓ Compilation completed with exit code: $LASTEXITCODE"
+          # Verify input files exist
+          if (-not (Test-Path "MinimizeToTray.au3")) {
+            Write-Error "Source file MinimizeToTray.au3 not found"
+            Get-ChildItem
+            exit 1
+          }
+          
+          if (-not (Test-Path "MTT.ico")) {
+            Write-Error "Icon file MTT.ico not found"
+            Get-ChildItem
+            exit 1
+          }
+          
+          Write-Host "Running compilation..."
+          Write-Host "Current directory: $(Get-Location)"
+          
+          # Try to capture any output
+          $output = & "$compiler_path" /in "MinimizeToTray.au3" /out "MinimizeToTray.exe" /nopack /icon "MTT.ico" 2>&1
+          $exitCode = $LASTEXITCODE
+          
+          Write-Host "Exit code: $exitCode"
+          Write-Host "Output: $output"
+          
+          if ($exitCode -ne 0) {
+            Write-Error "Compilation failed with exit code $exitCode"
+            Write-Host "Full output: $output"
+            exit 1
+          }
+          
+          Write-Host "✓ Compilation completed successfully"
       
       - name: Verify compiled file
         run: |
