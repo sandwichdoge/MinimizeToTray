@@ -3,7 +3,7 @@
 #include "WindowsConstants.au3"
 #include "WinAPI.au3"
 #include "SendMessage.au3"
-#include "UDFGlobalID.au3"
+;#include "UDFGlobalID.au3"
 ;#AutoIt3Wrapper_Au3Check_Parameters=-d -w 1 -w 2 -w 3 -w 4 -w 5 -w 6
 
 ; #INDEX# =======================================================================================================================
@@ -92,9 +92,7 @@ Func _GUICtrlHotkey_Create($hWnd, $iX, $iY, $iWidth = -1, $iHeight = -1, $iStyle
 
 	$iStyle = BitOR($iStyle, $WS_VISIBLE, $WS_CHILD) ; forced styles
 
-	Local $nCtrlID = __UDF_GetNextGlobalID($hWnd)
-	If @error Then Return SetError(@error, @extended, 0)
-
+	Local $nCtrlID = 0
 	Local $hRet = _WinAPI_CreateWindowEx($iStyleEx, $__HOTKEYCONSTANT_ClassName, "", $iStyle, $iX, $iY, $iWidth, $iHeight, $hWnd, $nCtrlID)
 	If @error Then Return SetError(@error, @extended, 0)
 
