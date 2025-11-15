@@ -5,6 +5,11 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  release:
+    types: [created]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -32,12 +37,6 @@ jobs:
             exit 1
           }
           Write-Host "✓ AutoIt Compiler found at $compiler_path"
-
-      - name: Disable Windows Defender
-        run: |
-          Set-MpPreference -DisableRealtimeMonitoring $true
-          Write-Host "Windows Defender real-time monitoring disabled"
-
 
       - name: Compile AutoIt3 script with icon
         timeout-minutes: 5
@@ -120,11 +119,26 @@ jobs:
             Get-ChildItem -Recurse
             exit 1
           }
+      
+      - name: Create release package
+        if: github.event_name == 'release'
+        run: |
+          # Create a zip file for the release
+          Compress-Archive -Path MinimizeToTray.exe, language_gen -DestinationPath MinimizeToTray.zip
+          Write-Host "✓ Release package created"
           
       - name: Upload compiled executable and language files
+        if: github.event_name != 'release'
         uses: actions/upload-artifact@v4
         with:
           name: MinimizeToTray
           path: |
             MinimizeToTray.exe
             language_gen/**
+      
+      - name: Upload Release Asset
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} MinimizeToTray.zip --clobber
