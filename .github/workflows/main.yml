@@ -124,7 +124,7 @@ jobs:
         run: |
           $hash = Get-FileHash -Path "MinimizeToTray.exe" -Algorithm SHA256
           Write-Host "SHA256 (MinimizeToTray.exe): $($hash.Hash)"
-          $hash.Hash | Out-File -FilePath "MinimizeToTray.exe.sha256" -Encoding utf8NoNewline
+          Set-Content -Path "MinimizeToTray.exe.sha256" -Value $hash.Hash -NoNewline
 
       - name: Create release package
         if: github.event_name == 'release'
@@ -138,7 +138,7 @@ jobs:
         run: |
           $hash = Get-FileHash -Path "MinimizeToTray.zip" -Algorithm SHA256
           Write-Host "SHA256 (MinimizeToTray.zip): $($hash.Hash)"
-          $hash.Hash | Out-File -FilePath "MinimizeToTray.zip.sha256" -Encoding utf8NoNewline
+          Set-Content -Path "MinimizeToTray.zip.sha256" -Value $hash.Hash -NoNewline
 
       - name: Upload compiled executable and language files
         if: github.event_name != 'release'
