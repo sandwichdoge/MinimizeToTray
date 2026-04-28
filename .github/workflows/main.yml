@@ -119,14 +119,27 @@ jobs:
             Get-ChildItem -Recurse
             exit 1
           }
-      
+
+      - name: Generate hash of compiled binary
+        run: |
+          $hash = Get-FileHash -Path "MinimizeToTray.exe" -Algorithm SHA256
+          Write-Host "SHA256 (MinimizeToTray.exe): $($hash.Hash)"
+          $hash.Hash | Out-File -FilePath "MinimizeToTray.exe.sha256" -Encoding utf8NoNewline
+
       - name: Create release package
         if: github.event_name == 'release'
         run: |
           # Create a zip file for the release
           Compress-Archive -Path MinimizeToTray.exe, language_gen -DestinationPath MinimizeToTray.zip
           Write-Host "✓ Release package created"
-          
+
+      - name: Generate hash of release archive
+        if: github.event_name == 'release'
+        run: |
+          $hash = Get-FileHash -Path "MinimizeToTray.zip" -Algorithm SHA256
+          Write-Host "SHA256 (MinimizeToTray.zip): $($hash.Hash)"
+          $hash.Hash | Out-File -FilePath "MinimizeToTray.zip.sha256" -Encoding utf8NoNewline
+
       - name: Upload compiled executable and language files
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v4
@@ -134,11 +147,12 @@ jobs:
           name: MinimizeToTray
           path: |
             MinimizeToTray.exe
+            MinimizeToTray.exe.sha256
             language_gen/**
-      
+
       - name: Upload Release Asset
         if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} MinimizeToTray.zip --clobber
+          gh release upload ${{ github.event.release.tag_name }} MinimizeToTray.zip MinimizeToTray.zip.sha256 MinimizeToTray.exe.sha256 --clobber
